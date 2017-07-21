@@ -1,0 +1,13 @@
+[Unit]
+Description=CM4all spawn
+After=network.target
+
+[Service]
+Type=notify
+ExecStart=/usr/sbin/cm4all-spawn
+KillMode=process
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

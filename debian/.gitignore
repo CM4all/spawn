@@ -1,0 +1,9 @@
+/*.debhelper
+/*.substvars
+/*-stamp
+/files
+
+/build/
+/tmp/
+/cm4all-spawn/
+/cm4all-spawn-doc/
