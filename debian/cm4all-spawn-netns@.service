@@ -1,0 +1,30 @@
+# Create a network namespace connected with the current namespace over
+# a pair of "veth" devices.  This requires a script in
+# /etc/cm4all/spawn/netns/setup.d which sets up the veth device inside
+# the new namespace; its name is passed as command-line argument.  The
+# other veth device is expected to be set up with systemd-networkd.
+
+[Unit]
+Description=CM4all Spawn Network Namespace
+After=network.target
+Wants=systemd-networkd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+ExecStart=/sbin/ip netns add %i
+ExecStart=/sbin/ip link add name %i type veth peer name %i_peer
+ExecStart=/sbin/ip link set %i_peer netns %i
+ExecStart=/sbin/ip netns exec %i /sbin/ip link set %i_peer name net0 up
+# Now launch the setup script
+ExecStart=/sbin/ip netns exec %i /etc/cm4all/spawn/netns/setup.d/%i net0
+
+# First delete the link, then the namespace.  This ordering is likely
+# to succeed.  If a process still runs inside this namespace, it will
+# see the veth device disappear.
+ExecStop=-/sbin/ip link delete %i
+ExecStop=-/sbin/ip netns delete %i
+
+[Install]
+WantedBy=multi-user.target
