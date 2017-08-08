@@ -8,6 +8,7 @@
 #include "event/Loop.hxx"
 #include "event/ShutdownListener.hxx"
 #include "event/SignalEvent.hxx"
+#include "odbus/Watch.hxx"
 
 class Instance final{
     EventLoop event_loop;
@@ -16,6 +17,8 @@ class Instance final{
 
     ShutdownListener shutdown_listener;
     SignalEvent sighup_event;
+
+    ODBus::WatchManager dbus_watch;
 
 public:
     explicit Instance();
