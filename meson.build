@@ -113,3 +113,11 @@ executable('cm4all-spawn',
   ],
   install: true,
   install_dir: 'sbin')
+
+shared_library('nss_cm4all_logname',
+  'src/NssLogname.cxx',
+  include_directories: inc,
+  install: true,
+  install_dir: '/' + get_option('libdir'),
+  soversion: '2',
+)
