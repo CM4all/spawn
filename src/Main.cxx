@@ -19,28 +19,28 @@ bool debug_mode = false;
 static void
 Run()
 {
-    SetupProcess();
+	SetupProcess();
 
-    Instance instance;
+	Instance instance;
 
-    AgentInit();
+	AgentInit();
 
-    /* tell systemd we're ready */
-    sd_notify(0, "READY=1");
+	/* tell systemd we're ready */
+	sd_notify(0, "READY=1");
 
-    /* main loop */
-    instance.Dispatch();
+	/* main loop */
+	instance.Dispatch();
 }
 
 int
 main(int argc, char **argv)
 try {
-    InitProcessName(argc, argv);
+	InitProcessName(argc, argv);
 
-    Run();
+	Run();
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 } catch (...) {
-    PrintException(std::current_exception());
-    return EXIT_FAILURE;
+	PrintException(std::current_exception());
+	return EXIT_FAILURE;
 }

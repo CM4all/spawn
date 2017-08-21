@@ -11,31 +11,31 @@
 #include "odbus/Watch.hxx"
 
 class Instance final{
-    EventLoop event_loop;
+	EventLoop event_loop;
 
-    bool should_exit = false;
+	bool should_exit = false;
 
-    ShutdownListener shutdown_listener;
-    SignalEvent sighup_event;
+	ShutdownListener shutdown_listener;
+	SignalEvent sighup_event;
 
-    ODBus::WatchManager dbus_watch;
+	ODBus::WatchManager dbus_watch;
 
 public:
-    explicit Instance();
+	explicit Instance();
 
-    ~Instance();
+	~Instance();
 
-    EventLoop &GetEventLoop() {
-        return event_loop;
-    }
+	EventLoop &GetEventLoop() {
+		return event_loop;
+	}
 
-    void Dispatch() {
-        event_loop.Dispatch();
-    }
+	void Dispatch() {
+		event_loop.Dispatch();
+	}
 
 private:
-    void OnExit();
-    void OnReload(int);
+	void OnExit();
+	void OnReload(int);
 };
 
 #endif
