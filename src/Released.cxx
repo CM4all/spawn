@@ -4,6 +4,12 @@
 
 #include "Instance.hxx"
 #include "util/StringCompare.hxx"
+#include "util/ScopeExit.hxx"
+
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
 
 /**
  * These systemd scopes are allocated by our software which uses the
@@ -27,6 +33,21 @@ GetManagedSuffix(const char *path)
 	return nullptr;
 }
 
+static void
+DestroyCgroup(const CgroupState &state, const char *relative_path)
+{
+	// TODO: collect statistics
+
+	for (const auto &mount : state.mounts) {
+		char buffer[4096];
+		snprintf(buffer, sizeof(buffer), "/sys/fs/cgroup/%s%s",
+			 mount.c_str(), relative_path);
+		if (rmdir(buffer) < 0)
+			fprintf(stderr, "Failed to delete '%s': %s\n",
+				buffer, strerror(errno));
+	}
+}
+
 void
 Instance::OnSystemdAgentReleased(const char *path)
 {
@@ -36,5 +57,6 @@ Instance::OnSystemdAgentReleased(const char *path)
 
 	printf("Cgroup released: %s\n", path);
 
-	// TODO: implement
+	// TODO: delay this call?
+	DestroyCgroup(cgroup_state, path);
 }
