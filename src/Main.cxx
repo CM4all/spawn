@@ -3,7 +3,6 @@
  */
 
 #include "Instance.hxx"
-#include "Agent.hxx"
 #include "system/SetupProcess.hxx"
 #include "system/ProcessName.hxx"
 #include "util/PrintException.hxx"
@@ -22,8 +21,6 @@ Run()
 	SetupProcess();
 
 	Instance instance;
-
-	AgentInit();
 
 	/* tell systemd we're ready */
 	sd_notify(0, "READY=1");

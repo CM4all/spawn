@@ -5,46 +5,10 @@
 #include "Agent.hxx"
 #include "odbus/Error.hxx"
 #include "odbus/Connection.hxx"
-#include "util/StringCompare.hxx"
 
-/**
- * These systemd scopes are allocated by our software which uses the
- * process spawner.  Their cgroups are managed by this daemon.
- */
-static constexpr const char *managed_scopes[] = {
-	"/system.slice/cm4all-beng-spawn.scope/",
-	"/system.slice/cm4all-workshop-spawn.scope/",
-	"/system.slice/cm4all-openssh.scope/",
-};
-
-static const char *
-GetManagedSuffix(const char *path)
-{
-	for (const char *i : managed_scopes) {
-		const char *suffix = StringAfterPrefix(path, i);
-		if (suffix != nullptr)
-			return suffix;
-	}
-
-	return nullptr;
-}
-
-static void
-AgentCgroupReleased(const char *path)
-{
-	const char *suffix = GetManagedSuffix(path);
-	if (suffix == nullptr)
-		return;
-
-	printf("Cgroup released: %s\n", path);
-
-	// TODO: implement
-}
-
-static DBusHandlerResult
-AgentHandleMessage(gcc_unused DBusConnection *connection,
-		   DBusMessage *message,
-		   gcc_unused void *user_data)
+inline DBusHandlerResult
+SystemdAgent::HandleMessage(gcc_unused DBusConnection *_connection,
+			    DBusMessage *message)
 {
 	if (dbus_message_is_signal(message, "org.freedesktop.systemd1.Agent",
 				   "Released") &&
@@ -55,26 +19,51 @@ AgentHandleMessage(gcc_unused DBusConnection *connection,
 		const char *path;
 		dbus_message_iter_get_basic(&iter, &path);
 
-		AgentCgroupReleased(path);
+		callback(path);
 		return DBUS_HANDLER_RESULT_HANDLED;
 	} else
 		return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
-void
-AgentInit()
+DBusHandlerResult
+SystemdAgent::HandleMessage(DBusConnection *connection,
+			    DBusMessage *message, void *user_data)
 {
-	auto connection = ODBus::Connection::GetSystem();
+	auto &agent = *(SystemdAgent *)user_data;
 
-	dbus_connection_add_filter(connection, AgentHandleMessage, nullptr,
-				   nullptr);
+	return agent.HandleMessage(connection, message);
+}
 
-	ODBus::Error error;
-	const char *match = "type='signal',"
-		"sender='org.freedesktop.systemd1',"
-		"interface='org.freedesktop.systemd1.Agent',"
-		"member='Released',"
-		"path='/org/freedesktop/systemd1/agent'";
-	dbus_bus_add_match(connection, match, error);
-	error.CheckThrow("DBus AddMatch error");
+SystemdAgent::SystemdAgent(Callback _callback)
+	:callback(_callback)
+{
+}
+
+SystemdAgent::~SystemdAgent()
+{
+	SetConnection({});
+}
+
+void
+SystemdAgent::SetConnection(ODBus::Connection _connection)
+{
+	if (connection)
+		dbus_connection_remove_filter(connection,
+					      HandleMessage, this);
+
+	connection = std::move(_connection);
+
+	if (connection) {
+		ODBus::Error error;
+		const char *match = "type='signal',"
+			"sender='org.freedesktop.systemd1',"
+			"interface='org.freedesktop.systemd1.Agent',"
+			"member='Released',"
+			"path='/org/freedesktop/systemd1/agent'";
+		dbus_bus_add_match(connection, match, error);
+		error.CheckThrow("DBus AddMatch error");
+
+		dbus_connection_add_filter(connection, HandleMessage, this,
+					   nullptr);
+	}
 }

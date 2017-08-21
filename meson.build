@@ -102,6 +102,7 @@ odbus_dep = declare_dependency(link_with: odbus)
 executable('cm4all-spawn',
   'src/Main.cxx',
   'src/Instance.cxx',
+  'src/Released.cxx',
   'src/Agent.cxx',
   include_directories: inc,
   dependencies: [

@@ -9,8 +9,9 @@
 #include "event/ShutdownListener.hxx"
 #include "event/SignalEvent.hxx"
 #include "odbus/Watch.hxx"
+#include "Agent.hxx"
 
-class Instance final{
+class Instance final {
 	EventLoop event_loop;
 
 	bool should_exit = false;
@@ -19,6 +20,8 @@ class Instance final{
 	SignalEvent sighup_event;
 
 	ODBus::WatchManager dbus_watch;
+
+	SystemdAgent agent;
 
 public:
 	explicit Instance();
@@ -36,6 +39,8 @@ public:
 private:
 	void OnExit();
 	void OnReload(int);
+
+	void OnSystemdAgentReleased(const char *path);
 };
 
 #endif

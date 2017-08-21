@@ -10,10 +10,13 @@
 Instance::Instance()
 	:shutdown_listener(event_loop, BIND_THIS_METHOD(OnExit)),
 	 sighup_event(event_loop, SIGHUP, BIND_THIS_METHOD(OnReload)),
-	 dbus_watch(event_loop, ODBus::Connection::GetSystem())
+	 dbus_watch(event_loop, ODBus::Connection::GetSystem()),
+	 agent(BIND_THIS_METHOD(OnSystemdAgentReleased))
 {
 	shutdown_listener.Enable();
 	sighup_event.Enable();
+
+	agent.SetConnection(ODBus::Connection::GetSystem());
 }
 
 Instance::~Instance()
