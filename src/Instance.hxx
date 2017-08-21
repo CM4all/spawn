@@ -9,6 +9,7 @@
 #include "event/ShutdownListener.hxx"
 #include "event/SignalEvent.hxx"
 #include "odbus/Watch.hxx"
+#include "spawn/CgroupState.hxx"
 #include "Agent.hxx"
 
 class Instance final {
@@ -18,6 +19,8 @@ class Instance final {
 
 	ShutdownListener shutdown_listener;
 	SignalEvent sighup_event;
+
+	const CgroupState cgroup_state;
 
 	ODBus::WatchManager dbus_watch;
 

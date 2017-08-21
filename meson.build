@@ -99,6 +99,16 @@ odbus = static_library('odbus',
   ])
 odbus_dep = declare_dependency(link_with: odbus)
 
+spawn = static_library('spawn',
+  'libcommon/src/spawn/Systemd.cxx',
+  include_directories: inc,
+  dependencies: [
+    libsystemd,
+    libdbus,
+    odbus_dep,
+  ])
+spawn_dep = declare_dependency(link_with: spawn)
+
 executable('cm4all-spawn',
   'src/Main.cxx',
   'src/Instance.cxx',
@@ -111,6 +121,7 @@ executable('cm4all-spawn',
     odbus_dep,
     event_dep,
     system_dep,
+    spawn_dep,
   ],
   install: true,
   install_dir: 'sbin')
