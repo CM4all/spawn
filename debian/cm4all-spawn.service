@@ -11,5 +11,7 @@ KillMode=process
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 
+Slice=system-cm4all.slice
+
 [Install]
 WantedBy=multi-user.target

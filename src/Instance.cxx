@@ -7,6 +7,7 @@
 #include "spawn/Systemd.hxx"
 
 #include <signal.h>
+#include <unistd.h>
 
 Instance::Instance()
 	:shutdown_listener(event_loop, BIND_THIS_METHOD(OnExit)),
@@ -15,7 +16,10 @@ Instance::Instance()
 	    systemd); we know it exists, and we know it has proper
 	    cgroups, while this process may or may not be set up
 	    properly */
-	 cgroup_state(LoadSystemdCgroupState(1)),
+	 cgroup_state(CreateSystemdScope("spawn.scope",
+					 "Process spawner helper daemon",
+					 getpid(), true,
+					 "system-cm4all.slice")),
 	 dbus_watch(event_loop, ODBus::Connection::GetSystem()),
 	 agent(BIND_THIS_METHOD(OnSystemdAgentReleased))
 {

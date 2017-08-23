@@ -1,5 +1,6 @@
 cm4all-spawn (0.2) unstable; urgency=low
 
+  * spawn: enable all cgroup controllers
   * slice: make cm4all.slice a child of system.slice
   * debian/control: add missing dependency on dbus
 
