@@ -1,6 +1,6 @@
 cm4all-spawn (0.2) unstable; urgency=low
 
-  * 
+  * slice: make cm4all.slice a child of system.slice
 
  --   
 
