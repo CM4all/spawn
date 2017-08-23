@@ -4,7 +4,7 @@ cm4all-spawn (0.2) unstable; urgency=low
   * slice: make cm4all.slice a child of system.slice
   * debian/control: add missing dependency on dbus
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Wed, 23 Aug 2017 15:06:14 -0000
 
 cm4all-spawn (0.1) unstable; urgency=low
 
