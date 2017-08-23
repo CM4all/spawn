@@ -1,6 +1,8 @@
 [Unit]
 Description=CM4all spawn
 After=network.target
+After=dbus.service
+Requires=dbus.service
 
 [Service]
 Type=notify
