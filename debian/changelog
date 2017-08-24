@@ -1,6 +1,6 @@
 cm4all-spawn (0.3) unstable; urgency=low
 
-  * 
+  * spawn: log CPU and memory usage statistics
 
  --   
 

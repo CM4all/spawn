@@ -74,6 +74,16 @@ system = static_library('system',
   ])
 system_dep = declare_dependency(link_with: system)
 
+io = static_library('io',
+  'libcommon/src/io/FileDescriptor.cxx',
+  'libcommon/src/io/WriteFile.cxx',
+  'libcommon/src/io/Logger.cxx',
+  include_directories: inc,
+  dependencies: [
+    util_dep,
+  ])
+io_dep = declare_dependency(link_with: io)
+
 event = static_library('event',
   'libcommon/src/event/Loop.cxx',
   'libcommon/src/event/ShutdownListener.cxx',
@@ -121,6 +131,7 @@ executable('cm4all-spawn',
     odbus_dep,
     event_dep,
     system_dep,
+    io_dep,
     spawn_dep,
   ],
   install: true,
