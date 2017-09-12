@@ -11,10 +11,6 @@
 
 #include <stdlib.h>
 
-#ifndef NDEBUG
-bool debug_mode = false;
-#endif
-
 static void
 Run()
 {
