@@ -27,8 +27,7 @@ class Instance final {
 	SystemdAgent agent;
 
 public:
-	explicit Instance();
-
+	Instance();
 	~Instance();
 
 	EventLoop &GetEventLoop() {
