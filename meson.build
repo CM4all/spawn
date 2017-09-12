@@ -67,8 +67,6 @@ util_dep = declare_dependency(link_with: util)
 
 system = static_library('system',
   'src/system/SetupProcess.cxx',
-  'libcommon/src/system/ProcessName.cxx',
-  'libcommon/src/system/BindMount.cxx',
   include_directories: inc,
   dependencies: [
   ])

@@ -4,7 +4,6 @@
 
 #include "Instance.hxx"
 #include "system/SetupProcess.hxx"
-#include "system/ProcessName.hxx"
 #include "util/PrintException.hxx"
 
 #include <systemd/sd-daemon.h>
@@ -28,7 +27,8 @@ Run()
 int
 main(int argc, char **argv)
 try {
-	InitProcessName(argc, argv);
+	(void)argc;
+	(void)argv;
 
 	Run();
 
