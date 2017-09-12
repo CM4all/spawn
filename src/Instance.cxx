@@ -12,10 +12,6 @@
 Instance::Instance()
 	:shutdown_listener(event_loop, BIND_THIS_METHOD(OnExit)),
 	 sighup_event(event_loop, SIGHUP, BIND_THIS_METHOD(OnReload)),
-	 /* obtain cgroup information from the init process (=
-	    systemd); we know it exists, and we know it has proper
-	    cgroups, while this process may or may not be set up
-	    properly */
 	 cgroup_state(CreateSystemdScope("spawn.scope",
 					 "Process spawner helper daemon",
 					 getpid(), true,
