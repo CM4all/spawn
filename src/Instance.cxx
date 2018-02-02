@@ -25,7 +25,7 @@ Instance::Instance()
 	shutdown_listener.Enable();
 	sighup_event.Enable();
 
-	agent.SetConnection(ODBus::Connection::GetSystem());
+	agent.SetConnection(dbus_watch.GetConnection());
 }
 
 Instance::~Instance()
