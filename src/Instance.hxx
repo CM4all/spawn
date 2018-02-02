@@ -8,11 +8,12 @@
 #include "event/Loop.hxx"
 #include "event/ShutdownListener.hxx"
 #include "event/SignalEvent.hxx"
+#include "event/TimerEvent.hxx"
 #include "odbus/Watch.hxx"
 #include "spawn/CgroupState.hxx"
 #include "Agent.hxx"
 
-class Instance final {
+class Instance final : ODBus::WatchManagerObserver  {
 	EventLoop event_loop;
 
 	bool should_exit = false;
@@ -23,6 +24,7 @@ class Instance final {
 	const CgroupState cgroup_state;
 
 	ODBus::WatchManager dbus_watch;
+	TimerEvent dbus_reconnect_timer;
 
 	SystemdAgent agent;
 
@@ -43,8 +45,12 @@ private:
 	void OnReload(int);
 
 	void ConnectDBus();
+	void ReconnectDBus() noexcept;
 
 	void OnSystemdAgentReleased(const char *path);
+
+	/* virtual methods from ODBus::WatchManagerObserver */
+	void OnDBusClosed() noexcept override;
 };
 
 #endif
