@@ -42,6 +42,8 @@ private:
 	void OnExit();
 	void OnReload(int);
 
+	void ConnectDBus();
+
 	void OnSystemdAgentReleased(const char *path);
 };
 

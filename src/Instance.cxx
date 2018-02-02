@@ -19,13 +19,13 @@ Instance::Instance()
 	 dbus_watch(event_loop, ODBus::Connection::GetSystem()),
 	 agent(BIND_THIS_METHOD(OnSystemdAgentReleased))
 {
+	ConnectDBus();
+
 	if (!cgroup_state.IsEnabled())
 		throw std::runtime_error("systemd cgroups are not available");
 
 	shutdown_listener.Enable();
 	sighup_event.Enable();
-
-	agent.SetConnection(dbus_watch.GetConnection());
 }
 
 Instance::~Instance()
@@ -48,4 +48,11 @@ Instance::OnExit()
 void
 Instance::OnReload(int)
 {
+}
+
+void
+Instance::ConnectDBus()
+{
+	dbus_watch.SetConnection(ODBus::Connection::GetSystem());
+	agent.SetConnection(dbus_watch.GetConnection());
 }
