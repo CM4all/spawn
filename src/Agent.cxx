@@ -61,7 +61,13 @@ SystemdAgent::SetConnection(ODBus::Connection _connection)
 			"member='Released',"
 			"path='/org/freedesktop/systemd1/agent'";
 		dbus_bus_add_match(connection, match, error);
-		error.CheckThrow("DBus AddMatch error");
+
+		try {
+			error.CheckThrow("DBus AddMatch error");
+		} catch (...) {
+			connection = {};
+			throw;
+		}
 
 		dbus_connection_add_filter(connection, HandleMessage, this,
 					   nullptr);
