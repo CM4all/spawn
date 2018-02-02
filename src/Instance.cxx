@@ -20,8 +20,7 @@ Instance::Instance()
 					 "Process spawner helper daemon",
 					 getpid(), true,
 					 "system-cm4all.slice")),
-	 dbus_watch(event_loop, *this,
-		    ODBus::Connection::GetSystem()),
+	 dbus_watch(event_loop, *this),
 	 dbus_reconnect_timer(event_loop, BIND_THIS_METHOD(ReconnectDBus)),
 	 agent(BIND_THIS_METHOD(OnSystemdAgentReleased))
 {
