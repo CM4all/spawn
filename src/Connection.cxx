@@ -32,7 +32,13 @@
 
 #include "Connection.hxx"
 #include "Instance.hxx"
+#include "spawn/Protocol.hxx"
+#include "util/ConstBuffer.hxx"
 #include "util/PrintException.hxx"
+
+#include <boost/crc.hpp>
+
+using namespace SpawnDaemon;
 
 SpawnConnection::SpawnConnection(Instance &_instance,
 				 UniqueSocketDescriptor &&_fd,
@@ -40,6 +46,12 @@ SpawnConnection::SpawnConnection(Instance &_instance,
 	:instance(_instance),
 	 peer_cred(_fd.GetPeerCredentials()),
 	 listener(instance.GetEventLoop(), std::move(_fd), *this) {}
+
+inline void
+SpawnConnection::OnRequest(RequestCommand command, ConstBuffer<void> payload)
+{
+	printf("Received cmd=%u size=%zu\n", unsigned(command), payload.size);
+}
 
 bool
 SpawnConnection::OnUdpDatagram(const void *data, size_t length,
@@ -50,8 +62,34 @@ try {
 		return false;
 	}
 
-	(void)data;
-	printf("Received %zu bytes\n", length);
+	const auto &dh = *(const DatagramHeader *)data;
+	if (length < sizeof(dh) || dh.magic != MAGIC)
+		throw std::runtime_error("Malformed datagram");
+
+	data = &dh + 1;
+	length -= sizeof(dh);
+
+	{
+		boost::crc_32_type crc;
+		crc.reset();
+		crc.process_bytes(data, length);
+		if (dh.crc != crc.checksum())
+			throw std::runtime_error("Bad CRC");
+	}
+
+	while (length > 0) {
+		const auto &rh = *(const RequestHeader *)data;
+		if (length < sizeof(rh))
+			throw std::runtime_error("Malformed request in datagram");
+
+		data = &rh + 1;
+		length -= sizeof(rh);
+		if (length < rh.size)
+			throw std::runtime_error("Malformed request in datagram");
+		length -= rh.size;
+
+		OnRequest(rh.command, {data, rh.size});
+	}
 
 	return true;
 } catch (...) {

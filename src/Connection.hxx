@@ -37,8 +37,12 @@
 
 #include <boost/intrusive/list.hpp>
 
+#include <stdint.h>
+
 class Instance;
 class UniqueSocketDescriptor;
+template<typename T> struct ConstBuffer;
+namespace SpawnDaemon { enum class RequestCommand : uint16_t; };
 
 class SpawnConnection final
 	: public boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::auto_unlink>>,
@@ -55,6 +59,8 @@ public:
 			UniqueSocketDescriptor &&_fd, SocketAddress address);
 
 private:
+	void OnRequest(SpawnDaemon::RequestCommand command, ConstBuffer<void> payload);
+
 	/* virtual methods from class UdpHandler */
 	bool OnUdpDatagram(const void *data, size_t length,
 			   SocketAddress address, int uid) override;
