@@ -96,6 +96,45 @@ event = static_library('event',
   ])
 event_dep = declare_dependency(link_with: event)
 
+net = static_library('net',
+  'libcommon/src/net/SocketAddress.cxx',
+  'libcommon/src/net/StaticSocketAddress.cxx',
+  'libcommon/src/net/AllocatedSocketAddress.cxx',
+  'libcommon/src/net/MaskedSocketAddress.cxx',
+  'libcommon/src/net/IPv4Address.cxx',
+  'libcommon/src/net/IPv6Address.cxx',
+  'libcommon/src/net/HostParser.cxx',
+  'libcommon/src/net/AddressInfo.cxx',
+  'libcommon/src/net/Resolver.cxx',
+  'libcommon/src/net/Parser.cxx',
+  'libcommon/src/net/ToString.cxx',
+  'libcommon/src/net/SocketDescriptor.cxx',
+  'libcommon/src/net/UniqueSocketDescriptor.cxx',
+  'libcommon/src/net/djb/NetstringInput.cxx',
+  'libcommon/src/net/djb/NetstringHeader.cxx',
+  'libcommon/src/net/djb/NetstringGenerator.cxx',
+  include_directories: inc,
+  dependencies: [
+    event_dep,
+    io_dep,
+  ])
+net_dep = declare_dependency(link_with: net)
+
+event_net = static_library('event_net',
+  'libcommon/src/event/net/ConnectSocket.cxx',
+  'libcommon/src/event/net/ServerSocket.cxx',
+  'libcommon/src/event/net/UdpListener.cxx',
+  'libcommon/src/event/net/djb/NetstringServer.cxx',
+  'libcommon/src/event/net/djb/NetstringClient.cxx',
+  include_directories: inc,
+  dependencies: [
+    libevent,
+    event_dep,
+    net_dep,
+    util_dep,
+  ])
+event_net_dep = declare_dependency(link_with: event_net)
+
 odbus = static_library('odbus',
   'libcommon/src/odbus/Error.cxx',
   'libcommon/src/odbus/Connection.cxx',
@@ -121,6 +160,7 @@ spawn_dep = declare_dependency(link_with: spawn)
 executable('cm4all-spawn',
   'src/Main.cxx',
   'src/Instance.cxx',
+  'src/Connection.cxx',
   'src/Released.cxx',
   'src/Agent.cxx',
   include_directories: inc,
@@ -131,6 +171,7 @@ executable('cm4all-spawn',
     event_dep,
     system_dep,
     io_dep,
+    event_net_dep,
     spawn_dep,
   ],
   install: true,

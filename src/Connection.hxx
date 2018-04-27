@@ -30,58 +30,33 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef INSTANCE_HXX
-#define INSTANCE_HXX
+#pragma once
 
-#include "Listener.hxx"
-#include "Agent.hxx"
-#include "event/Loop.hxx"
-#include "event/ShutdownListener.hxx"
-#include "event/SignalEvent.hxx"
-#include "event/TimerEvent.hxx"
-#include "odbus/Watch.hxx"
-#include "spawn/CgroupState.hxx"
+#include "event/net/UdpListener.hxx"
+#include "event/net/UdpHandler.hxx"
 
-class Instance final : ODBus::WatchManagerObserver  {
-	EventLoop event_loop;
+#include <boost/intrusive/list.hpp>
 
-	bool should_exit = false;
+class Instance;
+class UniqueSocketDescriptor;
 
-	ShutdownListener shutdown_listener;
-	SignalEvent sighup_event;
+class SpawnConnection final
+	: public boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::auto_unlink>>,
+	UdpHandler {
 
-	SpawnListener listener;
+	Instance &instance;
 
-	const CgroupState cgroup_state;
+	const struct ucred peer_cred;
 
-	ODBus::WatchManager dbus_watch;
-	TimerEvent dbus_reconnect_timer;
-
-	SystemdAgent agent;
+	UdpListener listener;
 
 public:
-	Instance();
-	~Instance();
-
-	EventLoop &GetEventLoop() {
-		return event_loop;
-	}
-
-	void Dispatch() {
-		event_loop.Dispatch();
-	}
+	SpawnConnection(Instance &_instance,
+			UniqueSocketDescriptor &&_fd, SocketAddress address);
 
 private:
-	void OnExit();
-	void OnReload(int);
-
-	void ConnectDBus();
-	void ReconnectDBus() noexcept;
-
-	void OnSystemdAgentReleased(const char *path);
-
-	/* virtual methods from ODBus::WatchManagerObserver */
-	void OnDBusClosed() noexcept override;
+	/* virtual methods from class UdpHandler */
+	bool OnUdpDatagram(const void *data, size_t length,
+			   SocketAddress address, int uid) override;
+	void OnUdpError(std::exception_ptr ep) noexcept override;
 };
-
-#endif

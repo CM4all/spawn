@@ -34,6 +34,9 @@
 #include "odbus/Connection.hxx"
 #include "spawn/Systemd.hxx"
 #include "event/Duration.hxx"
+#include "net/AllocatedSocketAddress.hxx"
+#include "net/UniqueSocketDescriptor.hxx"
+#include "system/Error.hxx"
 #include "util/PrintException.hxx"
 
 #include <signal.h>
@@ -41,9 +44,32 @@
 
 static constexpr auto dbus_reconnect_delay = ToEventDuration(std::chrono::seconds(5));
 
+static UniqueSocketDescriptor
+CreateBindLocalSocket(const char *path)
+{
+	UniqueSocketDescriptor s;
+	if (!s.CreateNonBlock(AF_LOCAL, SOCK_SEQPACKET, 0))
+		throw MakeErrno("Failed to create socket");
+
+	s.SetBoolOption(SOL_SOCKET, SO_PASSCRED, true);
+
+	{
+		AllocatedSocketAddress address;
+		address.SetLocal(path);
+		if (!s.Bind(address))
+			throw MakeErrno("Failed to bind");
+	}
+
+	if (!s.Listen(64))
+		throw MakeErrno("Failed to listen");
+
+	return s;
+}
+
 Instance::Instance()
 	:shutdown_listener(event_loop, BIND_THIS_METHOD(OnExit)),
 	 sighup_event(event_loop, SIGHUP, BIND_THIS_METHOD(OnReload)),
+	 listener(event_loop, *this),
 	 cgroup_state(CreateSystemdScope("spawn.scope",
 					 "Process spawner helper daemon",
 					 getpid(), true,
@@ -52,6 +78,8 @@ Instance::Instance()
 	 dbus_reconnect_timer(event_loop, BIND_THIS_METHOD(ReconnectDBus)),
 	 agent(BIND_THIS_METHOD(OnSystemdAgentReleased))
 {
+	listener.Listen(CreateBindLocalSocket("@cm4all-spawn"));
+
 	ConnectDBus();
 
 	if (!cgroup_state.IsEnabled())
@@ -72,6 +100,9 @@ Instance::OnExit()
 		return;
 
 	should_exit = true;
+
+	listener.RemoveEvent();
+	listener.CloseAllConnections();
 
 	dbus_watch.Shutdown();
 	shutdown_listener.Disable();

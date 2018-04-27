@@ -30,58 +30,39 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef INSTANCE_HXX
-#define INSTANCE_HXX
+#include "Connection.hxx"
+#include "Instance.hxx"
+#include "util/PrintException.hxx"
 
-#include "Listener.hxx"
-#include "Agent.hxx"
-#include "event/Loop.hxx"
-#include "event/ShutdownListener.hxx"
-#include "event/SignalEvent.hxx"
-#include "event/TimerEvent.hxx"
-#include "odbus/Watch.hxx"
-#include "spawn/CgroupState.hxx"
+SpawnConnection::SpawnConnection(Instance &_instance,
+				 UniqueSocketDescriptor &&_fd,
+				 SocketAddress)
+	:instance(_instance),
+	 peer_cred(_fd.GetPeerCredentials()),
+	 listener(instance.GetEventLoop(), std::move(_fd), *this) {}
 
-class Instance final : ODBus::WatchManagerObserver  {
-	EventLoop event_loop;
-
-	bool should_exit = false;
-
-	ShutdownListener shutdown_listener;
-	SignalEvent sighup_event;
-
-	SpawnListener listener;
-
-	const CgroupState cgroup_state;
-
-	ODBus::WatchManager dbus_watch;
-	TimerEvent dbus_reconnect_timer;
-
-	SystemdAgent agent;
-
-public:
-	Instance();
-	~Instance();
-
-	EventLoop &GetEventLoop() {
-		return event_loop;
+bool
+SpawnConnection::OnUdpDatagram(const void *data, size_t length,
+			       SocketAddress, int)
+try {
+	if (length == 0) {
+		delete this;
+		return false;
 	}
 
-	void Dispatch() {
-		event_loop.Dispatch();
-	}
+	(void)data;
+	printf("Received %zu bytes\n", length);
 
-private:
-	void OnExit();
-	void OnReload(int);
+	return true;
+} catch (...) {
+	PrintException(std::current_exception());
+	delete this;
+	return false;
+}
 
-	void ConnectDBus();
-	void ReconnectDBus() noexcept;
-
-	void OnSystemdAgentReleased(const char *path);
-
-	/* virtual methods from ODBus::WatchManagerObserver */
-	void OnDBusClosed() noexcept override;
-};
-
-#endif
+void
+SpawnConnection::OnUdpError(std::exception_ptr ep) noexcept
+{
+	PrintException(ep);
+	delete this;
+}
