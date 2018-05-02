@@ -49,7 +49,7 @@ static UniqueSocketDescriptor
 CreateConnectLocalSocket(const char *path)
 {
 	UniqueSocketDescriptor s;
-	if (!s.CreateNonBlock(AF_LOCAL, SOCK_SEQPACKET, 0))
+	if (!s.Create(AF_LOCAL, SOCK_SEQPACKET, 0))
 		throw MakeErrno("Failed to create socket");
 
 	{
