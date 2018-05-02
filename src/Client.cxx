@@ -137,7 +137,7 @@ try {
 	const char *name = argv[1];
 
 	auto s = CreateConnectLocalSocket("@cm4all-spawn");
-	SendMakeNamespaces(s, CLONE_NEWPID, name);
+	SendMakeNamespaces(s, CLONE_NEWIPC, name);
 
 	return EXIT_SUCCESS;
 } catch (...) {
