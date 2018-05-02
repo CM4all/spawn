@@ -33,10 +33,17 @@
 #include "Connection.hxx"
 #include "Instance.hxx"
 #include "spawn/Protocol.hxx"
+#include "net/ScmRightsBuilder.hxx"
+#include "io/UniqueFileDescriptor.hxx"
+#include "system/Error.hxx"
 #include "util/ConstBuffer.hxx"
+#include "util/StringView.hxx"
 #include "util/PrintException.hxx"
+#include "util/StaticArray.hxx"
 
 #include <boost/crc.hpp>
+
+#include <assert.h>
 
 using namespace SpawnDaemon;
 
@@ -50,7 +57,62 @@ SpawnConnection::SpawnConnection(Instance &_instance,
 inline void
 SpawnConnection::OnMakeNamespaces(ConstBuffer<void> payload)
 {
-	(void)payload;
+	const auto &_flags = *(const uint32_t *)payload.data;
+	if (payload.size <= sizeof(_flags))
+		throw std::runtime_error("Malformed datagram");
+
+	const StringView name((const char *)(&_flags + 1),
+			      payload.size - sizeof(_flags));
+	fprintf(stderr, "MAKE_NAMESPACES flags=0x%x name='%.*s'\n",
+		unsigned(_flags), int(name.size), name.data);
+
+	const uint32_t flags = _flags;
+	if (flags == 0)
+		throw std::runtime_error("Empty namespace flags");
+
+	constexpr uint32_t allowed_flags = CLONE_NEWIPC;
+	if (flags & ~allowed_flags)
+		throw std::runtime_error("Unsupported namespace");
+
+	StaticArray<uint32_t, 8> response_payload;
+	std::forward_list<UniqueFileDescriptor> response_fds;
+
+	struct iovec vec;
+
+	struct msghdr msg = {
+		.msg_name = nullptr,
+		.msg_namelen = 0,
+		.msg_iov = &vec,
+		.msg_iovlen = 1,
+		.msg_control = nullptr,
+		.msg_controllen = 0,
+		.msg_flags = 0,
+	};
+
+	ScmRightsBuilder<8> srb(msg);
+
+	if (flags & CLONE_NEWIPC) {
+		if (unshare(CLONE_NEWIPC) < 0)
+			throw MakeErrno("unshare(CLONE_NEWIPC) failed");
+
+		response_fds.emplace_front();
+		if (!response_fds.front().OpenReadOnly("/proc/self/ns/ipc"))
+			throw MakeErrno("open(\"/proc/self/ns/ipc\") failed");
+
+		srb.push_back(response_fds.front().Get());
+		response_payload.push_back(CLONE_NEWIPC);
+	}
+
+	assert(!response_payload.empty());
+
+	vec.iov_base = &response_payload.front();
+	vec.iov_len = response_payload.size() * sizeof(response_payload.front());
+
+	srb.Finish(msg);
+
+	if (sendmsg(listener.GetSocket().Get(), &msg,
+		    MSG_DONTWAIT|MSG_NOSIGNAL) < 0)
+		throw MakeErrno("send() failed");
 }
 
 inline void
