@@ -33,6 +33,7 @@
 #include "spawn/Protocol.hxx"
 #include "net/UniqueSocketDescriptor.hxx"
 #include "net/AllocatedSocketAddress.hxx"
+#include "net/ReceiveMessage.hxx"
 #include "system/Error.hxx"
 #include "util/Macros.hxx"
 #include "util/PrintException.hxx"
@@ -126,6 +127,20 @@ SendMakeNamespaces(SocketDescriptor s, uint32_t flags, StringView name)
 		    ConstBuffer<struct iovec>(payload, ARRAY_SIZE(payload)));
 }
 
+static void
+SetNs(ConstBuffer<uint32_t> nstypes,
+      std::forward_list<UniqueFileDescriptor> &&fds)
+{
+	assert(nstypes.size == (size_t)std::distance(fds.begin(), fds.end()));
+
+	for (auto nstype : nstypes) {
+		if (setns(fds.front().Get(), nstype) < 0)
+			throw FormatErrno("setns(0x%x) failed", nstype);
+
+		fds.pop_front();
+	}
+}
+
 int
 main(int argc, char **argv)
 try {
@@ -138,6 +153,49 @@ try {
 
 	auto s = CreateConnectLocalSocket("@cm4all-spawn");
 	SendMakeNamespaces(s, CLONE_NEWIPC, name);
+
+	ReceiveMessageBuffer<1024, 256> buffer;
+	auto response = ReceiveMessage(s, buffer, 0);
+	auto payload = response.payload;
+	const auto &dh = *(const DatagramHeader *)payload.data;
+	if (payload.size < sizeof(dh))
+		throw std::runtime_error("Malformed response");
+
+	payload.data = &dh + 1;
+	payload.size -= sizeof(dh);
+
+	{
+		boost::crc_32_type crc;
+		crc.reset();
+		crc.process_bytes(payload.data, payload.size);
+		if (dh.crc != crc.checksum())
+			throw std::runtime_error("Bad CRC");
+	}
+
+	const auto &rh = *(const ResponseHeader *)payload.data;
+	if (payload.size < sizeof(rh))
+		throw std::runtime_error("Malformed response");
+
+	payload.data = &rh + 1;
+	payload.size -= sizeof(rh);
+
+	if (payload.size < rh.size)
+		throw std::runtime_error("Malformed response");
+
+	switch (rh.command) {
+	case ResponseCommand::ERROR:
+		throw std::runtime_error(std::string((const char *)payload.data,
+						     rh.size));
+
+	case ResponseCommand::NAMESPACE_HANDLES:
+		if (rh.size != (size_t)std::distance(response.fds.begin(),
+						     response.fds.end()) * sizeof(uint32_t))
+			throw std::runtime_error("Malformed NAMESPACE_HANDLES payload");
+
+		SetNs(ConstBuffer<uint32_t>::FromVoid({payload.data, rh.size}),
+		      std::move(response.fds));
+		break;
+	}
 
 	return EXIT_SUCCESS;
 } catch (...) {
