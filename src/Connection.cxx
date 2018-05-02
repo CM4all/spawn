@@ -71,7 +71,7 @@ SpawnConnection::OnMakeNamespaces(ConstBuffer<void> payload)
 	if (flags == 0)
 		throw std::runtime_error("Empty namespace flags");
 
-	constexpr uint32_t allowed_flags = CLONE_NEWIPC;
+	constexpr uint32_t allowed_flags = CLONE_NEWIPC|CLONE_NEWPID;
 	if (flags & ~allowed_flags)
 		throw std::runtime_error("Unsupported namespace");
 
@@ -97,6 +97,11 @@ SpawnConnection::OnMakeNamespaces(ConstBuffer<void> payload)
 	if (flags & CLONE_NEWIPC) {
 		srb.push_back(ns.MakeIpc().Get());
 		response_payload.push_back(CLONE_NEWIPC);
+	}
+
+	if (flags & CLONE_NEWPID) {
+		srb.push_back(ns.MakePid().Get());
+		response_payload.push_back(CLONE_NEWPID);
 	}
 
 	assert(!response_payload.empty());

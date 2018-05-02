@@ -47,6 +47,8 @@ add_global_arguments(common_flags,
 libevent = dependency('libevent', version: '>= 2.0.19')
 libsystemd = dependency('libsystemd')
 libdbus = dependency('dbus-1')
+libcap = dependency('libcap')
+libseccomp = dependency('libseccomp')
 
 inc = include_directories('src', 'libcommon/src')
 
@@ -66,6 +68,8 @@ util = static_library('util',
 util_dep = declare_dependency(link_with: util)
 
 system = static_library('system',
+  'libcommon/src/system/CapabilityState.cxx',
+  'libcommon/src/system/ProcessName.cxx',
   'src/system/SetupProcess.cxx',
   include_directories: inc,
   dependencies: [
@@ -148,11 +152,16 @@ odbus = static_library('odbus',
 odbus_dep = declare_dependency(link_with: odbus)
 
 spawn = static_library('spawn',
+  'libcommon/src/spawn/SeccompFilter.cxx',
+  'libcommon/src/spawn/SyscallFilter.cxx',
   'libcommon/src/spawn/Systemd.cxx',
+  'libcommon/src/spawn/Init.cxx',
   include_directories: inc,
   dependencies: [
     libsystemd,
     libdbus,
+    libcap,
+    libseccomp,
     odbus_dep,
   ])
 spawn_dep = declare_dependency(link_with: spawn)

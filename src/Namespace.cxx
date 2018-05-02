@@ -31,9 +31,16 @@
  */
 
 #include "Namespace.hxx"
+#include "spawn/Init.hxx"
 #include "system/Error.hxx"
 
 #include <sched.h>
+
+Namespace::~Namespace()
+{
+	if (pid_init > 0)
+		kill(pid_init, SIGTERM);
+}
 
 FileDescriptor
 Namespace::MakeIpc()
@@ -48,4 +55,24 @@ Namespace::MakeIpc()
 		throw MakeErrno("open(\"/proc/self/ns/ipc\") failed");
 
 	return ipc_ns.ToFileDescriptor();
+}
+
+FileDescriptor
+Namespace::MakePid()
+{
+	if (pid_ns.IsDefined())
+		return pid_ns.ToFileDescriptor();
+
+	pid_init = UnshareForkSpawnInit();
+
+	try {
+		/* note: this requires Linux 4.12 */
+		if (!pid_ns.OpenReadOnly("/proc/self/ns/pid_for_children"))
+			throw MakeErrno("open(\"/proc/self/ns/pid_for_children\") failed");
+
+		return pid_ns.ToFileDescriptor();
+	} catch (...) {
+		kill(std::exchange(pid_init, 0), SIGTERM);
+		throw;
+	}
 }
