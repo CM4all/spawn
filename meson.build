@@ -177,6 +177,13 @@ executable('cm4all-spawn',
   install: true,
   install_dir: 'sbin')
 
+executable('cm4all-spawn-client',
+  'src/Client.cxx',
+  include_directories: inc,
+  dependencies: [
+    net_dep,
+  ])
+
 shared_library('nss_cm4all_logname',
   'src/NssLogname.cxx',
   include_directories: inc,
