@@ -84,11 +84,15 @@ try {
 
 		data = &rh + 1;
 		length -= sizeof(rh);
-		if (length < rh.size)
-			throw std::runtime_error("Malformed request in datagram");
-		length -= rh.size;
 
-		OnRequest(rh.command, {data, rh.size});
+		const size_t payload_size = rh.size;
+		const size_t padded_size = (payload_size + 3) & (~3u);
+
+		if (length < padded_size)
+			throw std::runtime_error("Malformed request in datagram");
+		length -= padded_size;
+
+		OnRequest(rh.command, {data, payload_size});
 	}
 
 	return true;
