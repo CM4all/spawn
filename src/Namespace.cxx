@@ -30,68 +30,22 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef INSTANCE_HXX
-#define INSTANCE_HXX
+#include "Namespace.hxx"
+#include "system/Error.hxx"
 
-#include "Listener.hxx"
-#include "Agent.hxx"
-#include "NamespaceMap.hxx"
-#include "event/Loop.hxx"
-#include "event/ShutdownListener.hxx"
-#include "event/SignalEvent.hxx"
-#include "event/TimerEvent.hxx"
-#include "odbus/Watch.hxx"
-#include "spawn/CgroupState.hxx"
+#include <sched.h>
 
-#include <map>
-#include <string>
+FileDescriptor
+Namespace::MakeIpc()
+{
+	if (ipc_ns.IsDefined())
+		return ipc_ns.ToFileDescriptor();
 
-class Instance final : ODBus::WatchManagerObserver  {
-	EventLoop event_loop;
+	if (unshare(CLONE_NEWIPC) < 0)
+		throw MakeErrno("unshare(CLONE_NEWIPC) failed");
 
-	bool should_exit = false;
+	if (!ipc_ns.OpenReadOnly("/proc/self/ns/ipc"))
+		throw MakeErrno("open(\"/proc/self/ns/ipc\") failed");
 
-	ShutdownListener shutdown_listener;
-	SignalEvent sighup_event;
-
-	SpawnListener listener;
-
-	const CgroupState cgroup_state;
-
-	ODBus::WatchManager dbus_watch;
-	TimerEvent dbus_reconnect_timer;
-
-	SystemdAgent agent;
-
-	NamespaceMap namespaces;
-
-public:
-	Instance();
-	~Instance();
-
-	EventLoop &GetEventLoop() {
-		return event_loop;
-	}
-
-	void Dispatch() {
-		event_loop.Dispatch();
-	}
-
-	NamespaceMap &GetNamespaces() noexcept {
-		return namespaces;
-	}
-
-private:
-	void OnExit();
-	void OnReload(int);
-
-	void ConnectDBus();
-	void ReconnectDBus() noexcept;
-
-	void OnSystemdAgentReleased(const char *path);
-
-	/* virtual methods from ODBus::WatchManagerObserver */
-	void OnDBusClosed() noexcept override;
-};
-
-#endif
+	return ipc_ns.ToFileDescriptor();
+}

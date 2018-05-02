@@ -75,6 +75,8 @@ SpawnConnection::OnMakeNamespaces(ConstBuffer<void> payload)
 	if (flags & ~allowed_flags)
 		throw std::runtime_error("Unsupported namespace");
 
+	auto &ns = instance.GetNamespaces()[std::string(name.data, name.size)];
+
 	StaticArray<uint32_t, 8> response_payload;
 	std::forward_list<UniqueFileDescriptor> response_fds;
 
@@ -93,14 +95,7 @@ SpawnConnection::OnMakeNamespaces(ConstBuffer<void> payload)
 	ScmRightsBuilder<8> srb(msg);
 
 	if (flags & CLONE_NEWIPC) {
-		if (unshare(CLONE_NEWIPC) < 0)
-			throw MakeErrno("unshare(CLONE_NEWIPC) failed");
-
-		response_fds.emplace_front();
-		if (!response_fds.front().OpenReadOnly("/proc/self/ns/ipc"))
-			throw MakeErrno("open(\"/proc/self/ns/ipc\") failed");
-
-		srb.push_back(response_fds.front().Get());
+		srb.push_back(ns.MakeIpc().Get());
 		response_payload.push_back(CLONE_NEWIPC);
 	}
 

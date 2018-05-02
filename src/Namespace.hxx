@@ -30,68 +30,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef INSTANCE_HXX
-#define INSTANCE_HXX
+#pragma once
 
-#include "Listener.hxx"
-#include "Agent.hxx"
-#include "NamespaceMap.hxx"
-#include "event/Loop.hxx"
-#include "event/ShutdownListener.hxx"
-#include "event/SignalEvent.hxx"
-#include "event/TimerEvent.hxx"
-#include "odbus/Watch.hxx"
-#include "spawn/CgroupState.hxx"
+#include "io/UniqueFileDescriptor.hxx"
 
-#include <map>
-#include <string>
-
-class Instance final : ODBus::WatchManagerObserver  {
-	EventLoop event_loop;
-
-	bool should_exit = false;
-
-	ShutdownListener shutdown_listener;
-	SignalEvent sighup_event;
-
-	SpawnListener listener;
-
-	const CgroupState cgroup_state;
-
-	ODBus::WatchManager dbus_watch;
-	TimerEvent dbus_reconnect_timer;
-
-	SystemdAgent agent;
-
-	NamespaceMap namespaces;
+class Namespace {
+	UniqueFileDescriptor ipc_ns;
 
 public:
-	Instance();
-	~Instance();
-
-	EventLoop &GetEventLoop() {
-		return event_loop;
-	}
-
-	void Dispatch() {
-		event_loop.Dispatch();
-	}
-
-	NamespaceMap &GetNamespaces() noexcept {
-		return namespaces;
-	}
-
-private:
-	void OnExit();
-	void OnReload(int);
-
-	void ConnectDBus();
-	void ReconnectDBus() noexcept;
-
-	void OnSystemdAgentReleased(const char *path);
-
-	/* virtual methods from ODBus::WatchManagerObserver */
-	void OnDBusClosed() noexcept override;
+	FileDescriptor MakeIpc();
 };
-
-#endif

@@ -31,6 +31,7 @@
  */
 
 #include "Instance.hxx"
+#include "Namespace.hxx"
 #include "odbus/Connection.hxx"
 #include "spawn/Systemd.hxx"
 #include "event/Duration.hxx"

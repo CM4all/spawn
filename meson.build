@@ -160,6 +160,7 @@ spawn_dep = declare_dependency(link_with: spawn)
 executable('cm4all-spawn',
   'src/Main.cxx',
   'src/Instance.cxx',
+  'src/Namespace.cxx',
   'src/Connection.cxx',
   'src/Released.cxx',
   'src/Agent.cxx',
