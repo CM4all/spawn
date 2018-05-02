@@ -38,6 +38,7 @@
 #include "system/Error.hxx"
 #include "util/ConstBuffer.hxx"
 #include "util/StringView.hxx"
+#include "util/Macros.hxx"
 #include "util/PrintException.hxx"
 #include "util/StaticArray.hxx"
 
@@ -77,13 +78,13 @@ SpawnConnection::OnMakeNamespaces(ConstBuffer<void> payload)
 	StaticArray<uint32_t, 8> response_payload;
 	std::forward_list<UniqueFileDescriptor> response_fds;
 
-	struct iovec vec;
+	struct iovec v[3];
 
 	struct msghdr msg = {
 		.msg_name = nullptr,
 		.msg_namelen = 0,
-		.msg_iov = &vec,
-		.msg_iovlen = 1,
+		.msg_iov = v,
+		.msg_iovlen = ARRAY_SIZE(v),
 		.msg_control = nullptr,
 		.msg_controllen = 0,
 		.msg_flags = 0,
@@ -105,10 +106,24 @@ SpawnConnection::OnMakeNamespaces(ConstBuffer<void> payload)
 
 	assert(!response_payload.empty());
 
-	vec.iov_base = &response_payload.front();
-	vec.iov_len = response_payload.size() * sizeof(response_payload.front());
+	const size_t response_payload_size = response_payload.size() * sizeof(response_payload.front());
+	v[2].iov_base = &response_payload.front();
+	v[2].iov_len = response_payload_size;
 
 	srb.Finish(msg);
+
+	const ResponseHeader rh{uint16_t(response_payload_size), ResponseCommand::NAMESPACE_HANDLES};
+	v[1].iov_base = const_cast<ResponseHeader *>(&rh);
+	v[1].iov_len = sizeof(rh);
+
+	boost::crc_32_type crc;
+	crc.reset();
+	crc.process_bytes(&rh, sizeof(rh));
+	crc.process_bytes(&response_payload.front(), response_payload_size);
+
+	const DatagramHeader dh{MAGIC, crc.checksum()};
+	v[0].iov_base = const_cast<DatagramHeader *>(&dh);
+	v[0].iov_len = sizeof(dh);
 
 	if (sendmsg(listener.GetSocket().Get(), &msg,
 		    MSG_DONTWAIT|MSG_NOSIGNAL) < 0)
