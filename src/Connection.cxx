@@ -48,9 +48,24 @@ SpawnConnection::SpawnConnection(Instance &_instance,
 	 listener(instance.GetEventLoop(), std::move(_fd), *this) {}
 
 inline void
+SpawnConnection::OnMakeNamespaces(ConstBuffer<void> payload)
+{
+	(void)payload;
+}
+
+inline void
 SpawnConnection::OnRequest(RequestCommand command, ConstBuffer<void> payload)
 {
 	printf("Received cmd=%u size=%zu\n", unsigned(command), payload.size);
+
+	switch (command) {
+	case RequestCommand::NOP:
+		break;
+
+	case RequestCommand::MAKE_NAMESPACES:
+		OnMakeNamespaces(payload);
+		break;
+	}
 }
 
 bool

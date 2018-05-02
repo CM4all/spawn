@@ -59,6 +59,7 @@ public:
 			UniqueSocketDescriptor &&_fd, SocketAddress address);
 
 private:
+	void OnMakeNamespaces(ConstBuffer<void> payload);
 	void OnRequest(SpawnDaemon::RequestCommand command, ConstBuffer<void> payload);
 
 	/* virtual methods from class UdpHandler */
