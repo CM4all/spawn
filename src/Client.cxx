@@ -68,18 +68,19 @@ SendRequest(SocketDescriptor s, RequestCommand command,
 {
 	assert(payload.size < 4);
 
-	const RequestHeader rh{uint16_t(payload.size), command};
+	size_t payload_size = 0;
+
+	for (const auto &p : payload)
+		payload_size += p.iov_len;
+
+	const RequestHeader rh{uint16_t(payload_size), command};
 
 	boost::crc_32_type crc;
 	crc.reset();
 	crc.process_bytes(&rh, sizeof(rh));
 
-	size_t payload_size = 0;
-
-	for (const auto &p : payload) {
-		payload_size += p.iov_len;
+	for (const auto &p : payload)
 		crc.process_bytes(p.iov_base, p.iov_len);
-	}
 
 	const size_t padding_size = (-payload_size) & 3;
 	static constexpr uint8_t padding[] = {0, 0, 0};
