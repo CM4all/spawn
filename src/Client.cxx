@@ -194,7 +194,9 @@ try {
 
 		SetNs(ConstBuffer<uint32_t>::FromVoid({payload.data, rh.size}),
 		      std::move(response.fds));
-		break;
+
+		execl("/bin/sh", "sh", nullptr);
+		throw MakeErrno("Failed to execute a shell");
 	}
 
 	return EXIT_SUCCESS;
