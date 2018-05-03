@@ -44,6 +44,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/wait.h>
+#include <sys/mount.h>
 
 using namespace SpawnDaemon;
 
@@ -203,6 +204,24 @@ try {
 				throw MakeErrno("fork() failed");
 
 			if (pid == 0) {
+				if (unshare(CLONE_NEWNS) < 0) {
+					perror("unshare(CLONE_NEWNS) failed");
+					_exit(EXIT_FAILURE);
+				}
+
+				if (mount(nullptr, "/", nullptr,
+					  MS_SLAVE|MS_REC, nullptr) < 0) {
+					perror("mount(MS_SLAVE) failed");
+					_exit(EXIT_FAILURE);
+				}
+
+				if (mount("proc", "/proc", "proc",
+					  MS_NOEXEC|MS_NOSUID|MS_NODEV,
+					  nullptr) < 0) {
+					perror("mount(/proc) failed");
+					_exit(EXIT_FAILURE);
+				}
+
 				execl("/bin/sh", "sh", nullptr);
 				throw MakeErrno("Failed to execute a shell");
 			}
