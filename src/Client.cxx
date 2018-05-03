@@ -43,6 +43,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/wait.h>
 
 using namespace SpawnDaemon;
 
@@ -152,7 +153,7 @@ try {
 	const char *name = argv[1];
 
 	auto s = CreateConnectLocalSocket("@cm4all-spawn");
-	SendMakeNamespaces(s, CLONE_NEWIPC, name);
+	SendMakeNamespaces(s, CLONE_NEWIPC|CLONE_NEWPID, name);
 
 	ReceiveMessageBuffer<1024, 256> buffer;
 	auto response = ReceiveMessage(s, buffer, 0);
@@ -196,8 +197,19 @@ try {
 		SetNs(ConstBuffer<uint32_t>::FromVoid({payload.data, rh.size}),
 		      std::move(response.fds));
 
-		execl("/bin/sh", "sh", nullptr);
-		throw MakeErrno("Failed to execute a shell");
+		{
+			const auto pid = fork();
+			if (pid < 0)
+				throw MakeErrno("fork() failed");
+
+			if (pid == 0) {
+				execl("/bin/sh", "sh", nullptr);
+				throw MakeErrno("Failed to execute a shell");
+			}
+
+			int status;
+			wait(&status);
+		}
 	}
 
 	return EXIT_SUCCESS;
