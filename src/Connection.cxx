@@ -31,6 +31,7 @@
  */
 
 #include "Connection.hxx"
+#include "Request.hxx"
 #include "Instance.hxx"
 #include "spawn/Protocol.hxx"
 #include "net/SendMessage.hxx"
@@ -57,26 +58,18 @@ SpawnConnection::SpawnConnection(Instance &_instance,
 	 listener(instance.GetEventLoop(), std::move(_fd), *this) {}
 
 inline void
-SpawnConnection::OnMakeNamespaces(ConstBuffer<void> payload)
+SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
 {
-	const auto &_flags = *(const uint32_t *)payload.data;
-	if (payload.size <= sizeof(_flags))
-		throw std::runtime_error("Malformed datagram");
+	if (request.name.empty())
+		throw std::runtime_error("No NAME");
 
-	const StringView name((const char *)(&_flags + 1),
-			      payload.size - sizeof(_flags));
-	fprintf(stderr, "MAKE_NAMESPACES flags=0x%x name='%.*s'\n",
-		unsigned(_flags), int(name.size), name.data);
+	int flags = 0;
+	if (request.ipc_namespace)
+		flags |= CLONE_NEWIPC;
+	if (request.pid_namespace)
+		flags |= CLONE_NEWPID;
 
-	const uint32_t flags = _flags;
-	if (flags == 0)
-		throw std::runtime_error("Empty namespace flags");
-
-	constexpr uint32_t allowed_flags = CLONE_NEWIPC|CLONE_NEWPID;
-	if (flags & ~allowed_flags)
-		throw std::runtime_error("Unsupported namespace");
-
-	auto &ns = instance.GetNamespaces()[std::string(name.data, name.size)];
+	auto &ns = instance.GetNamespaces()[std::move(request.name)];
 
 	StaticArray<uint32_t, 8> response_payload;
 	std::forward_list<UniqueFileDescriptor> response_fds;
@@ -122,18 +115,10 @@ SpawnConnection::OnMakeNamespaces(ConstBuffer<void> payload)
 }
 
 inline void
-SpawnConnection::OnRequest(RequestCommand command, ConstBuffer<void> payload)
+SpawnConnection::OnRequest(SpawnRequest &&request)
 {
-	printf("Received cmd=%u size=%zu\n", unsigned(command), payload.size);
-
-	switch (command) {
-	case RequestCommand::NOP:
-		break;
-
-	case RequestCommand::MAKE_NAMESPACES:
-		OnMakeNamespaces(payload);
-		break;
-	}
+	if (request.IsNamespace())
+		OnMakeNamespaces(std::move(request));
 }
 
 bool
@@ -160,6 +145,8 @@ try {
 			throw std::runtime_error("Bad CRC");
 	}
 
+	SpawnRequest request;
+
 	while (length > 0) {
 		const auto &rh = *(const RequestHeader *)data;
 		if (length < sizeof(rh))
@@ -175,8 +162,12 @@ try {
 			throw std::runtime_error("Malformed request in datagram");
 		length -= padded_size;
 
-		OnRequest(rh.command, {data, payload_size});
+		request.Apply(rh.command, {data, payload_size});
+
+		data = (const uint8_t *)data + padded_size;
 	}
+
+	OnRequest(std::move(request));
 
 	return true;
 } catch (...) {

@@ -40,6 +40,7 @@
 #include "util/Macros.hxx"
 #include "util/PrintException.hxx"
 #include "util/StringView.hxx"
+#include "util/StaticArray.hxx"
 
 #include <boost/crc.hpp>
 
@@ -68,15 +69,22 @@ CreateConnectLocalSocket(const char *path)
 }
 
 static void
-SendMakeNamespaces(SocketDescriptor s, uint32_t flags, StringView name)
+SendMakeNamespaces(SocketDescriptor s, StringView name,
+		   bool ipc_namespace, bool pid_namespace)
 {
 	DatagramBuilder b;
 
-	const uint16_t payload_size = sizeof(flags) + name.size;
-	const RequestHeader rh{payload_size, RequestCommand::MAKE_NAMESPACES};
-	b.Append(rh);
-	b.AppendRaw({ &flags, sizeof(flags) });
+	const RequestHeader name_header{uint16_t(name.size), RequestCommand::NAME};
+	b.Append(name_header);
 	b.AppendPadded(name.ToVoid());
+
+	static constexpr RequestHeader ipc_namespace_header{0, RequestCommand::IPC_NAMESPACE};
+	if (ipc_namespace)
+		b.Append(ipc_namespace_header);
+
+	static constexpr RequestHeader pid_namespace_header{0, RequestCommand::PID_NAMESPACE};
+	if (pid_namespace)
+		b.Append(pid_namespace_header);
 
 	SendMessage(s, b.Finish(), 0);
 }
@@ -106,7 +114,7 @@ try {
 	const char *name = argv[1];
 
 	auto s = CreateConnectLocalSocket("@cm4all-spawn");
-	SendMakeNamespaces(s, CLONE_NEWIPC|CLONE_NEWPID, name);
+	SendMakeNamespaces(s, name, true, true);
 
 	ReceiveMessageBuffer<1024, 256> buffer;
 	auto response = ReceiveMessage(s, buffer, 0);

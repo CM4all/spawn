@@ -30,41 +30,68 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include "Request.hxx"
+#include "spawn/Protocol.hxx"
+#include "util/StringView.hxx"
 
-#include "event/net/UdpListener.hxx"
-#include "event/net/UdpHandler.hxx"
+#include <stdexcept>
 
-#include <boost/intrusive/list.hpp>
+using namespace SpawnDaemon;
 
-#include <stdint.h>
+static std::string
+CheckNonEmptyASCII(StringView payload)
+{
+	if (payload.empty())
+		throw std::runtime_error("Empty string");
 
-class Instance;
-class UniqueSocketDescriptor;
-template<typename T> struct ConstBuffer;
-namespace SpawnDaemon { enum class RequestCommand : uint16_t; };
-struct SpawnRequest;
+	for (char ch : payload)
+		if ((signed char)ch < 0x20)
+			throw std::runtime_error("Malformed string");
 
-class SpawnConnection final
-	: public boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::auto_unlink>>,
-	UdpHandler {
+	return {payload.data, payload.size};
+}
 
-	Instance &instance;
+static std::string
+CheckNonEmptyASCII(ConstBuffer<void> payload)
+{
+	return CheckNonEmptyASCII(StringView((const char *)payload.data,
+					     payload.size));
+}
 
-	const struct ucred peer_cred;
+void
+SpawnRequest::Apply(RequestCommand command, ConstBuffer<void> payload)
+{
+	printf("Received cmd=%u size=%zu\n", unsigned(command), payload.size);
 
-	UdpListener listener;
+	switch (command) {
+	case RequestCommand::NOP:
+		break;
 
-public:
-	SpawnConnection(Instance &_instance,
-			UniqueSocketDescriptor &&_fd, SocketAddress address);
+	case RequestCommand::NAME:
+		if (!name.empty())
+			throw std::runtime_error("Duplicate NAME");
 
-private:
-	void OnMakeNamespaces(SpawnRequest &&request);
-	void OnRequest(SpawnRequest &&request);
+		name = CheckNonEmptyASCII(payload);
+		break;
 
-	/* virtual methods from class UdpHandler */
-	bool OnUdpDatagram(const void *data, size_t length,
-			   SocketAddress address, int uid) override;
-	void OnUdpError(std::exception_ptr ep) noexcept override;
-};
+	case RequestCommand::IPC_NAMESPACE:
+		if (ipc_namespace)
+			throw std::runtime_error("Duplicate IPC_NAMESPACE");
+
+		if (!payload.empty())
+			throw std::runtime_error("Malformed IPC_NAMESPACE");
+
+		ipc_namespace = true;
+		break;
+
+	case RequestCommand::PID_NAMESPACE:
+		if (pid_namespace)
+			throw std::runtime_error("Duplicate PID_NAMESPACE");
+
+		if (!payload.empty())
+			throw std::runtime_error("Malformed PID_NAMESPACE");
+
+		pid_namespace = true;
+		break;
+	}
+}

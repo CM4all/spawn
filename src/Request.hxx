@@ -32,39 +32,24 @@
 
 #pragma once
 
-#include "event/net/UdpListener.hxx"
-#include "event/net/UdpHandler.hxx"
-
-#include <boost/intrusive/list.hpp>
+#include <string>
 
 #include <stdint.h>
 
-class Instance;
-class UniqueSocketDescriptor;
+struct StringView;
 template<typename T> struct ConstBuffer;
 namespace SpawnDaemon { enum class RequestCommand : uint16_t; };
-struct SpawnRequest;
 
-class SpawnConnection final
-	: public boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::auto_unlink>>,
-	UdpHandler {
+struct SpawnRequest {
+	std::string name;
 
-	Instance &instance;
+	bool ipc_namespace = false;
+	bool pid_namespace = false;
 
-	const struct ucred peer_cred;
+	bool IsNamespace() const noexcept {
+		return ipc_namespace || pid_namespace;
+	}
 
-	UdpListener listener;
-
-public:
-	SpawnConnection(Instance &_instance,
-			UniqueSocketDescriptor &&_fd, SocketAddress address);
-
-private:
-	void OnMakeNamespaces(SpawnRequest &&request);
-	void OnRequest(SpawnRequest &&request);
-
-	/* virtual methods from class UdpHandler */
-	bool OnUdpDatagram(const void *data, size_t length,
-			   SocketAddress address, int uid) override;
-	void OnUdpError(std::exception_ptr ep) noexcept override;
+	void Apply(SpawnDaemon::RequestCommand command,
+		   ConstBuffer<void> payload);
 };
