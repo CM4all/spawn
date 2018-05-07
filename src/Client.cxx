@@ -34,6 +34,7 @@
 #include "net/UniqueSocketDescriptor.hxx"
 #include "net/AllocatedSocketAddress.hxx"
 #include "net/ReceiveMessage.hxx"
+#include "net/SendMessage.hxx"
 #include "system/Error.hxx"
 #include "util/Macros.hxx"
 #include "util/PrintException.hxx"
@@ -102,19 +103,7 @@ SendRequest(SocketDescriptor s, RequestCommand command,
 
 	v[nv++] = {const_cast<uint8_t *>(padding), padding_size};
 
-	struct msghdr h = {
-		.msg_name = nullptr,
-		.msg_namelen = 0,
-		.msg_iov = v,
-		.msg_iovlen = nv,
-		.msg_control = nullptr,
-		.msg_controllen = 0,
-		.msg_flags = 0,
-	};
-
-	auto nbytes = sendmsg(s.Get(), &h, 0);
-	if (nbytes < 0)
-		throw MakeErrno("Failed to send");
+	SendMessage(s, ConstBuffer<struct iovec>(v, nv), 0);
 }
 
 static void
