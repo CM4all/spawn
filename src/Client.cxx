@@ -30,6 +30,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "Builder.hxx"
 #include "spawn/Protocol.hxx"
 #include "net/UniqueSocketDescriptor.hxx"
 #include "net/AllocatedSocketAddress.hxx"
@@ -67,55 +68,17 @@ CreateConnectLocalSocket(const char *path)
 }
 
 static void
-SendRequest(SocketDescriptor s, RequestCommand command,
-	    ConstBuffer<struct iovec> payload)
-{
-	assert(payload.size < 4);
-
-	size_t payload_size = 0;
-
-	for (const auto &p : payload)
-		payload_size += p.iov_len;
-
-	const RequestHeader rh{uint16_t(payload_size), command};
-
-	boost::crc_32_type crc;
-	crc.reset();
-	crc.process_bytes(&rh, sizeof(rh));
-
-	for (const auto &p : payload)
-		crc.process_bytes(p.iov_base, p.iov_len);
-
-	const size_t padding_size = (-payload_size) & 3;
-	static constexpr uint8_t padding[] = {0, 0, 0};
-	crc.process_bytes(padding, padding_size);
-
-	const DatagramHeader dh{MAGIC, crc.checksum()};
-
-	struct iovec v[8];
-	size_t nv = 0;
-
-	v[nv++] = {const_cast<DatagramHeader *>(&dh), sizeof(dh)};
-	v[nv++] = {const_cast<RequestHeader *>(&rh), sizeof(rh)};
-
-	for (const auto &p : payload)
-		v[nv++] = p;
-
-	v[nv++] = {const_cast<uint8_t *>(padding), padding_size};
-
-	SendMessage(s, ConstBuffer<struct iovec>(v, nv), 0);
-}
-
-static void
 SendMakeNamespaces(SocketDescriptor s, uint32_t flags, StringView name)
 {
-	const struct iovec payload[] = {
-		{ &flags, sizeof(flags) },
-		{ const_cast<char *>(name.data), name.size },
-	};
+	DatagramBuilder b;
 
-	SendRequest(s, RequestCommand::MAKE_NAMESPACES,
-		    ConstBuffer<struct iovec>(payload, ARRAY_SIZE(payload)));
+	const uint16_t payload_size = sizeof(flags) + name.size;
+	const RequestHeader rh{payload_size, RequestCommand::MAKE_NAMESPACES};
+	b.Append(rh);
+	b.AppendRaw({ &flags, sizeof(flags) });
+	b.AppendPadded(name.ToVoid());
+
+	SendMessage(s, b.Finish(), 0);
 }
 
 static void
