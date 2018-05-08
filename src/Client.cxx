@@ -32,6 +32,7 @@
 
 #include "spawn/daemon/Builder.hxx"
 #include "spawn/daemon/Protocol.hxx"
+#include "spawn/daemon/Client.hxx"
 #include "net/UniqueSocketDescriptor.hxx"
 #include "net/AllocatedSocketAddress.hxx"
 #include "net/ReceiveMessage.hxx"
@@ -50,23 +51,6 @@
 #include <sys/mount.h>
 
 using namespace SpawnDaemon;
-
-static UniqueSocketDescriptor
-CreateConnectLocalSocket(const char *path)
-{
-	UniqueSocketDescriptor s;
-	if (!s.Create(AF_LOCAL, SOCK_SEQPACKET, 0))
-		throw MakeErrno("Failed to create socket");
-
-	{
-		AllocatedSocketAddress address;
-		address.SetLocal(path);
-		if (!s.Connect(address))
-			throw MakeErrno("Failed to bind");
-	}
-
-	return s;
-}
 
 static void
 SendMakeNamespaces(SocketDescriptor s, StringView name,
@@ -113,7 +97,7 @@ try {
 
 	const char *name = argv[1];
 
-	auto s = CreateConnectLocalSocket("@cm4all-spawn");
+	auto s = Connect();
 	SendMakeNamespaces(s, name, true, true);
 
 	ReceiveMessageBuffer<1024, 256> buffer;

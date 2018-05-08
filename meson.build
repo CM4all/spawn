@@ -157,6 +157,7 @@ spawn = static_library('spawn',
   'libcommon/src/spawn/SyscallFilter.cxx',
   'libcommon/src/spawn/Systemd.cxx',
   'libcommon/src/spawn/Init.cxx',
+  'libcommon/src/spawn/daemon/Client.cxx',
   include_directories: inc,
   dependencies: [
     libsystemd,
@@ -194,6 +195,7 @@ executable('cm4all-spawn-client',
   include_directories: inc,
   dependencies: [
     net_dep,
+    spawn_dep,
   ])
 
 shared_library('nss_cm4all_logname',
