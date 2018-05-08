@@ -31,7 +31,7 @@
  */
 
 #include "Builder.hxx"
-#include "spawn/Protocol.hxx"
+#include "spawn/daemon/Protocol.hxx"
 #include "net/UniqueSocketDescriptor.hxx"
 #include "net/AllocatedSocketAddress.hxx"
 #include "net/ReceiveMessage.hxx"

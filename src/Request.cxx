@@ -31,7 +31,7 @@
  */
 
 #include "Request.hxx"
-#include "spawn/Protocol.hxx"
+#include "spawn/daemon/Protocol.hxx"
 #include "util/StringView.hxx"
 
 #include <stdexcept>

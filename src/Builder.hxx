@@ -32,7 +32,7 @@
 
 #pragma once
 
-#include "spawn/Protocol.hxx"
+#include "spawn/daemon/Protocol.hxx"
 #include "net/SendMessage.hxx"
 #include "util/StaticArray.hxx"
 

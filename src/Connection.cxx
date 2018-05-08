@@ -33,7 +33,7 @@
 #include "Connection.hxx"
 #include "Request.hxx"
 #include "Instance.hxx"
-#include "spawn/Protocol.hxx"
+#include "spawn/daemon/Protocol.hxx"
 #include "net/SendMessage.hxx"
 #include "net/ScmRightsBuilder.hxx"
 #include "io/UniqueFileDescriptor.hxx"
