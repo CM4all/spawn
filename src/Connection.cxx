@@ -33,6 +33,7 @@
 #include "Connection.hxx"
 #include "Instance.hxx"
 #include "spawn/Protocol.hxx"
+#include "net/SendMessage.hxx"
 #include "net/ScmRightsBuilder.hxx"
 #include "io/UniqueFileDescriptor.hxx"
 #include "system/Error.hxx"
@@ -82,16 +83,7 @@ SpawnConnection::OnMakeNamespaces(ConstBuffer<void> payload)
 
 	struct iovec v[3];
 
-	struct msghdr msg = {
-		.msg_name = nullptr,
-		.msg_namelen = 0,
-		.msg_iov = v,
-		.msg_iovlen = ARRAY_SIZE(v),
-		.msg_control = nullptr,
-		.msg_controllen = 0,
-		.msg_flags = 0,
-	};
-
+	MessageHeader msg = ConstBuffer<struct iovec>(v);
 	ScmRightsBuilder<8> srb(msg);
 
 	if (flags & CLONE_NEWIPC) {
@@ -125,9 +117,8 @@ SpawnConnection::OnMakeNamespaces(ConstBuffer<void> payload)
 	v[0].iov_base = const_cast<DatagramHeader *>(&dh);
 	v[0].iov_len = sizeof(dh);
 
-	if (sendmsg(listener.GetSocket().Get(), &msg,
-		    MSG_DONTWAIT|MSG_NOSIGNAL) < 0)
-		throw MakeErrno("send() failed");
+	SendMessage(listener.GetSocket(), msg,
+		    MSG_DONTWAIT|MSG_NOSIGNAL);
 }
 
 inline void
