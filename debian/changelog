@@ -6,7 +6,7 @@ cm4all-spawn (0.3) unstable; urgency=low
   * don't restart daemon when DBus fails
   * manage PID namespaces
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Fri, 08 Jun 2018 09:53:48 -0000
 
 cm4all-spawn (0.2) unstable; urgency=low
 
