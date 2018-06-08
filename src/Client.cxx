@@ -131,8 +131,9 @@ try {
 
 	switch (rh.command) {
 	case ResponseCommand::ERROR:
-		throw std::runtime_error(std::string((const char *)payload.data,
-						     rh.size));
+		fprintf(stderr, "Server error: %.*s\n",
+			int(rh.size), (const char *)payload.data);
+		return EXIT_FAILURE;
 
 	case ResponseCommand::NAMESPACE_HANDLES:
 		if (rh.size != (size_t)std::distance(response.fds.begin(),
