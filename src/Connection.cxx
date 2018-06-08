@@ -34,6 +34,7 @@
 #include "Request.hxx"
 #include "Instance.hxx"
 #include "spawn/daemon/Protocol.hxx"
+#include "spawn/daemon/Builder.hxx"
 #include "net/SendMessage.hxx"
 #include "net/ScmRightsBuilder.hxx"
 #include "io/UniqueFileDescriptor.hxx"
@@ -42,6 +43,7 @@
 #include "util/StringView.hxx"
 #include "util/Macros.hxx"
 #include "util/PrintException.hxx"
+#include "util/Exception.hxx"
 #include "util/StaticArray.hxx"
 
 #include <boost/crc.hpp>
@@ -56,6 +58,19 @@ SpawnConnection::SpawnConnection(Instance &_instance,
 	:instance(_instance),
 	 peer_cred(_fd.GetPeerCredentials()),
 	 listener(instance.GetEventLoop(), std::move(_fd), *this) {}
+
+void
+SpawnConnection::SendError(StringView msg)
+{
+	DatagramBuilder b;
+
+	const ResponseHeader rh{uint16_t(msg.size), ResponseCommand::ERROR};
+	b.Append(rh);
+	b.AppendPadded(msg.ToVoid());
+
+	SendMessage(listener.GetSocket(), b.Finish(),
+		    MSG_DONTWAIT|MSG_NOSIGNAL);
+}
 
 inline void
 SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
@@ -79,14 +94,21 @@ SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
 	MessageHeader msg = ConstBuffer<struct iovec>(v);
 	ScmRightsBuilder<8> srb(msg);
 
-	if (flags & CLONE_NEWIPC) {
-		srb.push_back(ns.MakeIpc().Get());
-		response_payload.push_back(CLONE_NEWIPC);
-	}
+	try {
+		if (flags & CLONE_NEWIPC) {
+			srb.push_back(ns.MakeIpc().Get());
+			response_payload.push_back(CLONE_NEWIPC);
+		}
 
-	if (flags & CLONE_NEWPID) {
-		srb.push_back(ns.MakePid().Get());
-		response_payload.push_back(CLONE_NEWPID);
+		if (flags & CLONE_NEWPID) {
+			srb.push_back(ns.MakePid().Get());
+			response_payload.push_back(CLONE_NEWPID);
+		}
+	} catch (...) {
+		PrintException(std::current_exception());
+		const auto error = GetFullMessage(std::current_exception());
+		SendError({error.data(), error.size()});
+		return;
 	}
 
 	assert(!response_payload.empty());

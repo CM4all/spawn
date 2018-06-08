@@ -39,6 +39,7 @@
 
 #include <stdint.h>
 
+struct StringView;
 class Instance;
 class UniqueSocketDescriptor;
 template<typename T> struct ConstBuffer;
@@ -60,6 +61,8 @@ public:
 			UniqueSocketDescriptor &&_fd, SocketAddress address);
 
 private:
+	void SendError(StringView msg);
+
 	void OnMakeNamespaces(SpawnRequest &&request);
 	void OnRequest(SpawnRequest &&request);
 
