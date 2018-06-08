@@ -165,6 +165,9 @@ spawn = static_library('spawn',
     libcap,
     libseccomp,
     odbus_dep,
+    io_dep,
+    net_dep,
+    system_dep,
   ])
 spawn_dep = declare_dependency(link_with: spawn)
 
