@@ -4,6 +4,7 @@ cm4all-spawn (0.3) unstable; urgency=low
   * logger: fix off-by-one bug in log level check
   * agent: fix assertion failure after dbus error
   * don't restart daemon when DBus fails
+  * manage PID namespaces
 
  --   
 
