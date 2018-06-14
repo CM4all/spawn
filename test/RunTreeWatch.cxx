@@ -30,72 +30,55 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef INSTANCE_HXX
-#define INSTANCE_HXX
-
-#include "Listener.hxx"
-#include "NamespaceMap.hxx"
+#include "TreeWatch.hxx"
 #include "event/Loop.hxx"
-#include "event/ShutdownListener.hxx"
-#include "event/SignalEvent.hxx"
-#include "event/TimerEvent.hxx"
-#include "odbus/Watch.hxx"
-#include "spawn/CgroupState.hxx"
+#include "util/ConstBuffer.hxx"
+#include "util/PrintException.hxx"
 
-#include <map>
-#include <memory>
-#include <string>
+#include <stdlib.h>
 
-class UnifiedCgroupWatch;
-class SystemdAgent;
-
-class Instance final : ODBus::WatchManagerObserver  {
-	EventLoop event_loop;
-
-	bool should_exit = false;
-
-	ShutdownListener shutdown_listener;
-	SignalEvent sighup_event;
-
-	SpawnListener listener;
-
-	const CgroupState cgroup_state;
-
-	ODBus::WatchManager dbus_watch;
-	TimerEvent dbus_reconnect_timer;
-
-	std::unique_ptr<UnifiedCgroupWatch> unified_cgroup_watch;
-	std::unique_ptr<SystemdAgent> agent;
-
-	NamespaceMap namespaces;
-
+class MyTreeWatch final : public TreeWatch {
 public:
-	Instance();
-	~Instance();
+	MyTreeWatch(EventLoop &event_loop, const char *base_path)
+		:TreeWatch(event_loop, base_path) {}
 
-	EventLoop &GetEventLoop() {
-		return event_loop;
+
+protected:
+	void OnDirectoryCreated(const std::string &relative_path,
+				FileDescriptor) noexcept override {
+		printf("+ %s\n", relative_path.c_str());
 	}
 
-	void Dispatch() {
-		event_loop.Dispatch();
+	void OnDirectoryDeleted(const std::string &relative_path) noexcept override {
+		printf("- %s\n", relative_path.c_str());
 	}
-
-	NamespaceMap &GetNamespaces() noexcept {
-		return namespaces;
-	}
-
-private:
-	void OnExit();
-	void OnReload(int);
-
-	void ConnectDBus();
-	void ReconnectDBus() noexcept;
-
-	void OnSystemdAgentReleased(const char *path);
-
-	/* virtual methods from ODBus::WatchManagerObserver */
-	void OnDBusClosed() noexcept override;
 };
 
-#endif
+struct Usage {};
+
+int
+main(int argc, char **argv)
+try {
+	ConstBuffer<const char *> args(argv + 1, argc - 1);
+
+	if (args.size < 2)
+		throw Usage();
+
+	const char *base_path = args.shift();
+
+	EventLoop event_loop;
+	MyTreeWatch tw(event_loop, base_path);
+
+	for (const char *relative_path : args)
+		tw.Add(relative_path);
+
+	event_loop.Dispatch();
+
+	return EXIT_SUCCESS;
+} catch (const Usage &) {
+	fprintf(stderr, "Usage: %s PATH REL1...\n", argv[0]);
+	return EXIT_FAILURE;
+} catch (...) {
+	PrintException(std::current_exception());
+	return EXIT_FAILURE;
+}

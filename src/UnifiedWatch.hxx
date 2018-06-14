@@ -30,72 +30,62 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef INSTANCE_HXX
-#define INSTANCE_HXX
+#pragma once
 
-#include "Listener.hxx"
-#include "NamespaceMap.hxx"
-#include "event/Loop.hxx"
-#include "event/ShutdownListener.hxx"
-#include "event/SignalEvent.hxx"
-#include "event/TimerEvent.hxx"
-#include "odbus/Watch.hxx"
-#include "spawn/CgroupState.hxx"
+#include "TreeWatch.hxx"
+#include "io/UniqueFileDescriptor.hxx"
+#include "event/SocketEvent.hxx"
+#include "util/BindMethod.hxx"
 
 #include <map>
-#include <memory>
 #include <string>
 
-class UnifiedCgroupWatch;
-class SystemdAgent;
+/**
+ * Watch events in the "unified" (v2) cgroup hierarchy.
+ */
+class UnifiedCgroupWatch final : TreeWatch {
+	typedef BoundMethod<void(const char *relative_path)> Callback;
+	const Callback callback;
 
-class Instance final : ODBus::WatchManagerObserver  {
-	EventLoop event_loop;
+	class Group {
+		UnifiedCgroupWatch &parent;
 
-	bool should_exit = false;
+		const std::string relative_path;
 
-	ShutdownListener shutdown_listener;
-	SignalEvent sighup_event;
+		UniqueFileDescriptor fd;
 
-	SpawnListener listener;
+		SocketEvent event;
 
-	const CgroupState cgroup_state;
+	public:
+		Group(UnifiedCgroupWatch &_parent,
+		      const std::string &_relative_path,
+		      UniqueFileDescriptor &&_fd) noexcept;
 
-	ODBus::WatchManager dbus_watch;
-	TimerEvent dbus_reconnect_timer;
+		const std::string &GetRelativePath() noexcept {
+			return relative_path;
+		}
 
-	std::unique_ptr<UnifiedCgroupWatch> unified_cgroup_watch;
-	std::unique_ptr<SystemdAgent> agent;
+	private:
+		void EventCallback(unsigned events) noexcept;
+	};
 
-	NamespaceMap namespaces;
+	std::map<std::string, Group> groups;
+
+	bool in_add = false;
 
 public:
-	Instance();
-	~Instance();
+	UnifiedCgroupWatch(EventLoop &event_loop, Callback _callback);
 
-	EventLoop &GetEventLoop() {
-		return event_loop;
-	}
-
-	void Dispatch() {
-		event_loop.Dispatch();
-	}
-
-	NamespaceMap &GetNamespaces() noexcept {
-		return namespaces;
-	}
+	void AddCgroup(const char *relative_path);
 
 private:
-	void OnExit();
-	void OnReload(int);
+	void OnGroupEmpty(Group &group) noexcept;
 
-	void ConnectDBus();
-	void ReconnectDBus() noexcept;
-
-	void OnSystemdAgentReleased(const char *path);
-
-	/* virtual methods from ODBus::WatchManagerObserver */
-	void OnDBusClosed() noexcept override;
+protected:
+	void OnDirectoryCreated(const std::string &relative_path,
+				FileDescriptor directory_fd) noexcept override;
+	void OnDirectoryDeleted(const std::string &relative_path) noexcept override;
 };
 
-#endif
+bool
+HasUnifiedCgroups() noexcept;

@@ -83,6 +83,8 @@ executable('cm4all-spawn',
   'src/Scopes.cxx',
   'src/Released.cxx',
   'src/Agent.cxx',
+  'src/TreeWatch.cxx',
+  'src/UnifiedWatch.cxx',
   include_directories: inc,
   dependencies: [
     odbus_dep,
@@ -110,3 +112,5 @@ shared_library('nss_cm4all_logname',
   install_dir: '/' + get_option('libdir'),
   soversion: '2',
 )
+
+subdir('test')

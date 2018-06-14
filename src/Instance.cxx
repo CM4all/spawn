@@ -32,6 +32,8 @@
 
 #include "Instance.hxx"
 #include "Namespace.hxx"
+#include "Scopes.hxx"
+#include "UnifiedWatch.hxx"
 #include "Agent.hxx"
 #include "odbus/Connection.hxx"
 #include "spawn/Systemd.hxx"
@@ -86,7 +88,19 @@ Instance::Instance()
 	if (!cgroup_state.IsEnabled())
 		throw std::runtime_error("systemd cgroups are not available");
 
-	agent = std::make_unique<SystemdAgent>(BIND_THIS_METHOD(OnSystemdAgentReleased));
+	if (HasUnifiedCgroups()) {
+		unified_cgroup_watch = std::make_unique<UnifiedCgroupWatch>(event_loop,
+									    BIND_THIS_METHOD(OnSystemdAgentReleased));
+
+		for (auto i = managed_scopes; *i != nullptr; ++i) {
+			const char *relative_path = *i;
+			if (*relative_path == '/')
+				++relative_path;
+
+			unified_cgroup_watch->AddCgroup(relative_path);
+		}
+	} else
+		agent = std::make_unique<SystemdAgent>(BIND_THIS_METHOD(OnSystemdAgentReleased));
 
 	shutdown_listener.Enable();
 	sighup_event.Enable();
