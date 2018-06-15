@@ -34,7 +34,6 @@
 #define INSTANCE_HXX
 
 #include "Listener.hxx"
-#include "Agent.hxx"
 #include "NamespaceMap.hxx"
 #include "event/Loop.hxx"
 #include "event/ShutdownListener.hxx"
@@ -44,7 +43,10 @@
 #include "spawn/CgroupState.hxx"
 
 #include <map>
+#include <memory>
 #include <string>
+
+class SystemdAgent;
 
 class Instance final : ODBus::WatchManagerObserver  {
 	EventLoop event_loop;
@@ -61,7 +63,7 @@ class Instance final : ODBus::WatchManagerObserver  {
 	ODBus::WatchManager dbus_watch;
 	TimerEvent dbus_reconnect_timer;
 
-	SystemdAgent agent;
+	std::unique_ptr<SystemdAgent> agent;
 
 	NamespaceMap namespaces;
 

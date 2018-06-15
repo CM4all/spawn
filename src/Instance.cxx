@@ -32,6 +32,7 @@
 
 #include "Instance.hxx"
 #include "Namespace.hxx"
+#include "Agent.hxx"
 #include "odbus/Connection.hxx"
 #include "spawn/Systemd.hxx"
 #include "event/Duration.hxx"
@@ -76,8 +77,7 @@ Instance::Instance()
 					 getpid(), true,
 					 "system-cm4all.slice")),
 	 dbus_watch(event_loop, *this),
-	 dbus_reconnect_timer(event_loop, BIND_THIS_METHOD(ReconnectDBus)),
-	 agent(BIND_THIS_METHOD(OnSystemdAgentReleased))
+	 dbus_reconnect_timer(event_loop, BIND_THIS_METHOD(ReconnectDBus))
 {
 	listener.Listen(CreateBindLocalSocket("@cm4all-spawn"));
 
@@ -85,6 +85,8 @@ Instance::Instance()
 
 	if (!cgroup_state.IsEnabled())
 		throw std::runtime_error("systemd cgroups are not available");
+
+	agent = std::make_unique<SystemdAgent>(BIND_THIS_METHOD(OnSystemdAgentReleased));
 
 	shutdown_listener.Enable();
 	sighup_event.Enable();
@@ -125,7 +127,8 @@ Instance::ConnectDBus()
 	dbus_connection_set_exit_on_disconnect(dbus_watch.GetConnection(),
 					       false);
 
-	agent.SetConnection(dbus_watch.GetConnection());
+	if (agent)
+		agent->SetConnection(dbus_watch.GetConnection());
 }
 
 void
