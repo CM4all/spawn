@@ -70,6 +70,7 @@ util_dep = declare_dependency(link_with: util)
 system = static_library('system',
   'libcommon/src/system/CapabilityState.cxx',
   'libcommon/src/system/ProcessName.cxx',
+  'libcommon/src/system/LinuxFD.cxx',
   'src/system/SetupProcess.cxx',
   include_directories: inc,
   dependencies: [
