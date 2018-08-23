@@ -36,6 +36,7 @@
 #include "util/ScopeExit.hxx"
 
 #include <sched.h>
+#include <signal.h>
 
 Namespace::~Namespace()
 {
