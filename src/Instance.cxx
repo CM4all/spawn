@@ -35,7 +35,6 @@
 #include "Agent.hxx"
 #include "odbus/Connection.hxx"
 #include "spawn/Systemd.hxx"
-#include "event/Duration.hxx"
 #include "net/AllocatedSocketAddress.hxx"
 #include "net/UniqueSocketDescriptor.hxx"
 #include "system/Error.hxx"
@@ -44,7 +43,7 @@
 #include <signal.h>
 #include <unistd.h>
 
-static constexpr auto dbus_reconnect_delay = ToEventDuration(std::chrono::seconds(5));
+static constexpr auto dbus_reconnect_delay = std::chrono::seconds(5);
 
 static UniqueSocketDescriptor
 CreateBindLocalSocket(const char *path)
@@ -139,7 +138,7 @@ Instance::ReconnectDBus() noexcept
 		fprintf(stderr, "Reconnected to DBus\n");
 	} catch (...) {
 		PrintException(std::current_exception());
-		dbus_reconnect_timer.Add(dbus_reconnect_delay);
+		dbus_reconnect_timer.Schedule(dbus_reconnect_delay);
 	}
 }
 
@@ -147,5 +146,5 @@ void
 Instance::OnDBusClosed() noexcept
 {
 	fprintf(stderr, "Connection to DBus lost\n");
-	dbus_reconnect_timer.Add(dbus_reconnect_delay);
+	dbus_reconnect_timer.Schedule(dbus_reconnect_delay);
 }
