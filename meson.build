@@ -47,11 +47,11 @@ add_global_arguments(common_flags,
 inc = include_directories(
   'src',
   'libcommon/src',
-
-  # This is for the BufferedSocket class which this project doesn't
-  # use
-  'libcommon/fake',
 )
+
+libcommon_enable_c = false
+libcommon_enable_DefaultFifoBuffer = false
+libcommon_enable_AllocatorPtr = false
 
 subdir('libcommon/src/util')
 subdir('libcommon/src/io')
@@ -73,7 +73,6 @@ subdir('libcommon/src/event')
 subdir('libcommon/src/net')
 subdir('libcommon/src/event/net')
 subdir('libcommon/src/odbus')
-subdir('libcommon/src/adata')
 subdir('libcommon/src/spawn')
 
 executable('cm4all-spawn',
