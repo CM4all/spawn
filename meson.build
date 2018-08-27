@@ -44,7 +44,6 @@ add_global_arguments(common_flags,
   '-Wno-non-virtual-dtor',
   language: 'cpp')
 
-libevent = dependency('libevent', version: '>= 2.0.19')
 libsystemd = dependency('libsystemd')
 libdbus = dependency('dbus-1')
 libcap = dependency('libcap')
@@ -71,6 +70,7 @@ system = static_library('system',
   'libcommon/src/system/CapabilityState.cxx',
   'libcommon/src/system/ProcessName.cxx',
   'libcommon/src/system/LinuxFD.cxx',
+  'libcommon/src/system/EpollFD.cxx',
   'src/system/SetupProcess.cxx',
   include_directories: inc,
   dependencies: [
@@ -91,13 +91,13 @@ event = static_library('event',
   'libcommon/src/event/Loop.cxx',
   'libcommon/src/event/ShutdownListener.cxx',
   'libcommon/src/event/CleanupTimer.cxx',
+  'libcommon/src/event/TimerEvent.cxx',
   'libcommon/src/event/DeferEvent.cxx',
-  'libcommon/src/event/NewSocketEvent.cxx',
+  'libcommon/src/event/SocketEvent.cxx',
   'libcommon/src/event/SignalEvent.cxx',
   'libcommon/src/event/PipeLineReader.cxx',
   include_directories: inc,
   dependencies: [
-    libevent,
     util_dep,
   ])
 event_dep = declare_dependency(link_with: event)
@@ -135,7 +135,6 @@ event_net = static_library('event_net',
   'libcommon/src/event/net/djb/NetstringClient.cxx',
   include_directories: inc,
   dependencies: [
-    libevent,
     event_dep,
     net_dep,
     util_dep,
