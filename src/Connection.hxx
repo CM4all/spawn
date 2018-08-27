@@ -37,6 +37,7 @@
 
 #include <boost/intrusive/list.hpp>
 
+#include <sys/socket.h>
 #include <stdint.h>
 
 struct StringView;
