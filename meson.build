@@ -84,7 +84,6 @@ executable('cm4all-spawn',
   'src/Agent.cxx',
   include_directories: inc,
   dependencies: [
-    libdbus,
     odbus_dep,
     event_dep,
     system_dep,
