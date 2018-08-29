@@ -35,16 +35,13 @@
 #include "event/net/UdpListener.hxx"
 #include "event/net/UdpHandler.hxx"
 
-#include <boost/intrusive/list.hpp>
+#include <boost/intrusive/list_hook.hpp>
 
 #include <sys/socket.h>
-#include <stdint.h>
 
 struct StringView;
 class Instance;
 class UniqueSocketDescriptor;
-template<typename T> struct ConstBuffer;
-namespace SpawnDaemon { enum class RequestCommand : uint16_t; };
 struct SpawnRequest;
 
 class SpawnConnection final

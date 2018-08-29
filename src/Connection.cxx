@@ -41,7 +41,6 @@
 #include "system/Error.hxx"
 #include "util/ConstBuffer.hxx"
 #include "util/StringView.hxx"
-#include "util/Macros.hxx"
 #include "util/PrintException.hxx"
 #include "util/Exception.hxx"
 #include "util/StaticArray.hxx"
