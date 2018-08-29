@@ -31,6 +31,8 @@
  */
 
 #include "Instance.hxx"
+#include "odbus/Init.hxx"
+#include "odbus/Connection.hxx"
 #include "system/SetupProcess.hxx"
 #include "util/PrintException.hxx"
 
@@ -42,6 +44,10 @@ static void
 Run()
 {
 	SetupProcess();
+
+	const ODBus::ScopeInit dbus_init;
+	dbus_connection_set_exit_on_disconnect(ODBus::Connection::GetSystem(),
+					       false);
 
 	Instance instance;
 
