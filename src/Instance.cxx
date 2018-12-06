@@ -124,6 +124,9 @@ Instance::OnExit()
 	dbus_watch.Shutdown();
 	shutdown_listener.Disable();
 	sighup_event.Disable();
+
+	agent.reset();
+	unified_cgroup_watch.reset();
 }
 
 void
