@@ -73,6 +73,7 @@ Instance::Instance()
 	 listener(event_loop, *this),
 	 cgroup_state(CreateSystemdScope("spawn.scope",
 					 "Process spawner helper daemon",
+					 {},
 					 getpid(), true,
 					 "system-cm4all.slice")),
 	 dbus_watch(event_loop, *this),
