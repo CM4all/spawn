@@ -14,8 +14,6 @@ endif
 
 common_flags = [
   '-D_GNU_SOURCE',
-  '-DPACKAGE="' + meson.project_name() + '"',
-  '-DVERSION="' + meson.project_version() + '"',
   '-Wall',
   '-Wextra',
   '-Wwrite-strings', '-Wcast-qual', '-Wcast-align', '-Wfloat-equal',
