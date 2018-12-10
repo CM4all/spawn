@@ -74,11 +74,8 @@ OpenCgroupFile(const char *relative_path, const char *controller_name,
 }
 
 static size_t
-ReadCgroupFile(const char *relative_path, const char *controller_name,
-	       const char *filename,
-	       void *buffer, size_t buffer_size)
+ReadFile(FileDescriptor fd, void *buffer, size_t buffer_size)
 {
-	auto fd = OpenCgroupFile(relative_path, controller_name, filename);
 	ssize_t nbytes = fd.Read(buffer, buffer_size);
 	if (nbytes < 0)
 		throw MakeErrno("Failed to read");
@@ -87,24 +84,18 @@ ReadCgroupFile(const char *relative_path, const char *controller_name,
 }
 
 static char *
-ReadCgroupFileZ(const char *relative_path, const char *controller_name,
-		const char *filename,
-		char *buffer, size_t buffer_size)
+ReadFileZ(FileDescriptor fd, char *buffer, size_t buffer_size)
 {
-	size_t length = ReadCgroupFile(relative_path, controller_name,
-				       filename,
-				       buffer, buffer_size - 1);
+	size_t length = ReadFile(fd, buffer, buffer_size - 1);
 	buffer[length] = 0;
 	return buffer;
 }
 
 static uint64_t
-ReadCgroupNumber(const char *relative_path, const char *controller_name,
-		 const char *filename)
+ReadFileUint64(FileDescriptor fd)
 {
-	char data[64];
-	ReadCgroupFileZ(relative_path, controller_name, filename,
-			data, sizeof(data));
+	char buffer[64];
+	const char *data = ReadFileZ(fd, buffer, sizeof(buffer));
 
 	char *endptr;
 	auto value = strtoull(data, &endptr, 10);
@@ -115,12 +106,26 @@ ReadCgroupNumber(const char *relative_path, const char *controller_name,
 }
 
 static std::chrono::duration<double>
+ReadFileNS(FileDescriptor fd)
+{
+	const auto value = ReadFileUint64(fd);
+	return std::chrono::nanoseconds(value);
+}
+
+static uint64_t
+ReadCgroupNumber(const char *relative_path, const char *controller_name,
+		 const char *filename)
+{
+	return ReadFileUint64(OpenCgroupFile(relative_path,
+					     controller_name, filename));
+}
+
+static std::chrono::duration<double>
 ReadCgroupNS(const char *relative_path, const char *controller_name,
 	     const char *filename)
 {
-	const auto value = ReadCgroupNumber(relative_path,
-					    controller_name, filename);
-	return std::chrono::nanoseconds(value);
+	return ReadFileNS(OpenCgroupFile(relative_path,
+					 controller_name, filename));
 }
 
 static void
