@@ -5,6 +5,8 @@ project('CM4all spawn', 'cpp', version: '0.4',
   ],
 )
 
+compiler = meson.get_compiler('cpp')
+
 # TODO: use get_option('b_ndebug'), but that doesn't work with Meson 0.37.1
 if get_option('buildtype') == 'debug'
   debug = true
@@ -24,14 +26,36 @@ common_flags = [
   '-Wundef',
 ]
 
+test_common_flags = [
+  '-fvisibility=hidden',
+]
+
 if debug
   common_flags += ['-DPOISON']
+else
+  test_common_flags += [
+    '-ffunction-sections',
+    '-fdata-sections',
+  ]
+
+  add_global_link_arguments(
+    compiler.get_supported_link_arguments(
+      '-Wl,--gc-sections',
+      '-Wl,--icf=all',
+    ),
+    language: 'cpp'
+  )
 endif
+
+test_cxxflags = test_common_flags + [
+]
 
 add_global_arguments(common_flags,
   '-Wno-missing-field-initializers',
   '-Wno-non-virtual-dtor',
   language: 'cpp')
+
+add_global_arguments(compiler.get_supported_arguments(test_cxxflags), language: 'cpp')
 
 inc = include_directories(
   'src',
