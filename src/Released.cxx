@@ -38,6 +38,8 @@
 #include "util/ScopeExit.hxx"
 #include "util/PrintException.hxx"
 
+#include <chrono>
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -91,6 +93,15 @@ ReadCgroupNumber(const char *relative_path, const char *controller_name,
 	return value;
 }
 
+static std::chrono::duration<double>
+ReadCgroupNS(const char *relative_path, const char *controller_name,
+	     const char *filename)
+{
+	const auto value = ReadCgroupNumber(relative_path,
+					    controller_name, filename);
+	return std::chrono::nanoseconds(value);
+}
+
 static void
 CollectCgroupStats(const char *relative_path, const char *suffix)
 {
@@ -101,22 +112,22 @@ CollectCgroupStats(const char *relative_path, const char *suffix)
 	size_t position = 0;
 
 	try {
-		position += sprintf(buffer + position, " cpuacct.usage=%" PRIu64,
-				    ReadCgroupNumber(relative_path, "cpuacct", "usage"));
+		position += sprintf(buffer + position, " cpuacct.usage=%fs",
+				    ReadCgroupNS(relative_path, "cpuacct", "usage").count());
 	} catch (...) {
 		PrintException(std::current_exception());
 	}
 
 	try {
-		position += sprintf(buffer + position, " cpuacct.usage_user=%" PRIu64,
-				    ReadCgroupNumber(relative_path, "cpuacct", "usage_user"));
+		position += sprintf(buffer + position, " cpuacct.usage_user=%fs",
+				    ReadCgroupNS(relative_path, "cpuacct", "usage_user").count());
 	} catch (...) {
 		PrintException(std::current_exception());
 	}
 
 	try {
-		position += sprintf(buffer + position, " cpuacct.usage_sys=%" PRIu64,
-				    ReadCgroupNumber(relative_path, "cpuacct", "usage_sys"));
+		position += sprintf(buffer + position, " cpuacct.usage_sys=%fs",
+				    ReadCgroupNS(relative_path, "cpuacct", "usage_sys").count());
 	} catch (...) {
 		PrintException(std::current_exception());
 	}

@@ -1,6 +1,7 @@
 cm4all-spawn (0.4) unstable; urgency=low
 
   * support cgroupv2 using inotify/epoll instead of systemd agent
+  * print CPU usage in seconds
   * eliminate dependency on libevent
 
  --   
