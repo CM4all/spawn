@@ -29,15 +29,6 @@ if debug
 endif
 
 add_global_arguments(common_flags,
-  '-Wmissing-prototypes', '-Wstrict-prototypes',
-  '-Wbad-function-cast',
-  '-Waggregate-return',
-  '-Wredundant-decls', '-Wno-long-long', '-Wundef',
-  '-Wnested-externs',
-  '-pedantic',
-  language: 'c')
-
-add_global_arguments(common_flags,
   '-Wno-missing-field-initializers',
   '-Wno-non-virtual-dtor',
   language: 'cpp')
