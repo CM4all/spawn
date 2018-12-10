@@ -165,8 +165,6 @@ Instance::OnSystemdAgentReleased(const char *path)
 	if (suffix == nullptr)
 		return;
 
-	printf("Cgroup released: %s\n", path);
-
 	CollectCgroupStats(path, suffix);
 	fflush(stdout);
 
