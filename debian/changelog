@@ -6,7 +6,7 @@ cm4all-spawn (0.4) unstable; urgency=low
   * log memory usage in Megabytes
   * eliminate dependency on libevent
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Mon, 10 Dec 2018 18:17:13 +0100
 
 cm4all-spawn (0.3) unstable; urgency=low
 
