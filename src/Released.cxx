@@ -59,6 +59,19 @@ GetManagedSuffix(const char *path)
 }
 
 static UniqueFileDescriptor
+OpenCgroupUnifiedFile(const char *relative_path, const char *filename)
+{
+	char path[4096];
+	snprintf(path, sizeof(path), "/sys/fs/cgroup/unified%s/%s",
+		 relative_path, filename);
+
+	UniqueFileDescriptor fd;
+	if (!fd.OpenReadOnly(path))
+		throw FormatErrno("Failed to open %s", path);
+	return fd;
+}
+
+static UniqueFileDescriptor
 OpenCgroupFile(const char *relative_path, const char *controller_name,
 	       const char *filename)
 {
@@ -128,6 +141,55 @@ ReadCgroupNS(const char *relative_path, const char *controller_name,
 					 controller_name, filename));
 }
 
+struct CpuStat {
+	std::chrono::duration<double> total{}, user{}, system{};
+};
+
+static const char *
+FindLine(const char *data, const char *name)
+{
+	const size_t name_length = strlen(name);
+	const char *p = data;
+
+	while (true) {
+		const char *needle = strstr(p, name);
+		if (needle == nullptr)
+			break;
+
+		if ((needle == data || needle[-1] == '\n') && needle[name_length] == ' ')
+			return needle + name_length + 1;
+
+		p = needle + 1;
+	}
+
+	return nullptr;
+}
+
+static CpuStat
+ReadCgroupCpuStat(const char *relative_path)
+{
+	char buffer[4096];
+	const char *data = ReadFileZ(OpenCgroupUnifiedFile(relative_path,
+							   "cpu.stat"),
+				     buffer, sizeof(buffer));
+
+	CpuStat result;
+
+	const char *p = FindLine(data, "usage_usec");
+	if (p != nullptr)
+		result.total = std::chrono::microseconds(strtoull(p, nullptr, 10));
+
+	p = FindLine(data, "user_usec");
+	if (p != nullptr)
+		result.user = std::chrono::microseconds(strtoull(p, nullptr, 10));
+
+	p = FindLine(data, "system_usec");
+	if (p != nullptr)
+		result.system = std::chrono::microseconds(strtoull(p, nullptr, 10));
+
+	return result;
+}
+
 static void
 CollectCgroupStats(const char *relative_path, const char *suffix)
 {
@@ -137,25 +199,40 @@ CollectCgroupStats(const char *relative_path, const char *suffix)
 	char buffer[4096];
 	size_t position = 0;
 
+	bool have_cpu_stat = false;
+
 	try {
-		position += sprintf(buffer + position, " cpuacct.usage=%fs",
-				    ReadCgroupNS(relative_path, "cpuacct", "usage").count());
+		const auto cpu_stat = ReadCgroupCpuStat(relative_path);
+		position += sprintf(buffer + position, " cpu=%fs/%fs/%fs",
+				    cpu_stat.total.count(),
+				    cpu_stat.user.count(),
+				    cpu_stat.system.count());
+		have_cpu_stat = true;
 	} catch (...) {
 		PrintException(std::current_exception());
 	}
 
-	try {
-		position += sprintf(buffer + position, " cpuacct.usage_user=%fs",
-				    ReadCgroupNS(relative_path, "cpuacct", "usage_user").count());
-	} catch (...) {
-		PrintException(std::current_exception());
-	}
+	if (!have_cpu_stat) {
+		try {
+			position += sprintf(buffer + position, " cpuacct.usage=%fs",
+					    ReadCgroupNS(relative_path, "cpuacct", "usage").count());
+		} catch (...) {
+			PrintException(std::current_exception());
+		}
 
-	try {
-		position += sprintf(buffer + position, " cpuacct.usage_sys=%fs",
-				    ReadCgroupNS(relative_path, "cpuacct", "usage_sys").count());
-	} catch (...) {
-		PrintException(std::current_exception());
+		try {
+			position += sprintf(buffer + position, " cpuacct.usage_user=%fs",
+					    ReadCgroupNS(relative_path, "cpuacct", "usage_user").count());
+		} catch (...) {
+			PrintException(std::current_exception());
+		}
+
+		try {
+			position += sprintf(buffer + position, " cpuacct.usage_sys=%fs",
+					    ReadCgroupNS(relative_path, "cpuacct", "usage_sys").count());
+		} catch (...) {
+			PrintException(std::current_exception());
+		}
 	}
 
 	try {
