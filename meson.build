@@ -48,13 +48,11 @@ else
 endif
 
 test_cxxflags = test_common_flags + [
-]
-
-add_global_arguments(common_flags,
   '-Wno-missing-field-initializers',
   '-Wno-non-virtual-dtor',
-  language: 'cpp')
+]
 
+add_global_arguments(common_flags, language: 'cpp')
 add_global_arguments(compiler.get_supported_arguments(test_cxxflags), language: 'cpp')
 
 inc = include_directories(
