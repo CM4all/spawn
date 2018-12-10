@@ -73,17 +73,38 @@ OpenCgroupFile(const char *relative_path, const char *controller_name,
 	return fd;
 }
 
+static size_t
+ReadCgroupFile(const char *relative_path, const char *controller_name,
+	       const char *filename,
+	       void *buffer, size_t buffer_size)
+{
+	auto fd = OpenCgroupFile(relative_path, controller_name, filename);
+	ssize_t nbytes = fd.Read(buffer, buffer_size);
+	if (nbytes < 0)
+		throw MakeErrno("Failed to read");
+
+	return nbytes;
+}
+
+static char *
+ReadCgroupFileZ(const char *relative_path, const char *controller_name,
+		const char *filename,
+		char *buffer, size_t buffer_size)
+{
+	size_t length = ReadCgroupFile(relative_path, controller_name,
+				       filename,
+				       buffer, buffer_size - 1);
+	buffer[length] = 0;
+	return buffer;
+}
+
 static uint64_t
 ReadCgroupNumber(const char *relative_path, const char *controller_name,
 		 const char *filename)
 {
-	auto fd = OpenCgroupFile(relative_path, controller_name, filename);
 	char data[64];
-	ssize_t nbytes = fd.Read(data, sizeof(data) - 1);
-	if (nbytes < 0)
-		throw MakeErrno("Failed to read");
-
-	data[nbytes] = 0;
+	ReadCgroupFileZ(relative_path, controller_name, filename,
+			data, sizeof(data));
 
 	char *endptr;
 	auto value = strtoull(data, &endptr, 10);
