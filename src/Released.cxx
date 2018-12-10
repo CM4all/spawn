@@ -236,10 +236,12 @@ CollectCgroupStats(const char *relative_path, const char *suffix)
 	}
 
 	try {
+		static constexpr uint64_t MEGA = 1024 * 1024;
+
 		position += sprintf(buffer + position,
-				    " memory.max_usage_in_bytes=%" PRIu64,
-				    ReadCgroupNumber(relative_path, "memory",
-						     "max_usage_in_bytes"));
+				    " memory=%" PRIu64 "M",
+				    (ReadCgroupNumber(relative_path, "memory",
+						      "max_usage_in_bytes") + MEGA / 2 - 1) / MEGA);
 	} catch (...) {
 		PrintException(std::current_exception());
 	}
