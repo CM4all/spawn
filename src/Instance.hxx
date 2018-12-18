@@ -71,13 +71,13 @@ class Instance final : ODBus::WatchManagerObserver  {
 
 public:
 	Instance();
-	~Instance();
+	~Instance() noexcept;
 
-	EventLoop &GetEventLoop() {
+	EventLoop &GetEventLoop() noexcept {
 		return event_loop;
 	}
 
-	void Dispatch() {
+	void Dispatch() noexcept {
 		event_loop.Dispatch();
 	}
 
@@ -86,8 +86,8 @@ public:
 	}
 
 private:
-	void OnExit();
-	void OnReload(int);
+	void OnExit() noexcept;
+	void OnReload(int) noexcept;
 
 	void ConnectDBus();
 	void ReconnectDBus() noexcept;

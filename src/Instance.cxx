@@ -106,12 +106,10 @@ Instance::Instance()
 	sighup_event.Enable();
 }
 
-Instance::~Instance()
-{
-}
+Instance::~Instance() noexcept = default;
 
 void
-Instance::OnExit()
+Instance::OnExit() noexcept
 {
 	if (should_exit)
 		return;
@@ -130,7 +128,7 @@ Instance::OnExit()
 }
 
 void
-Instance::OnReload(int)
+Instance::OnReload(int) noexcept
 {
 }
 
