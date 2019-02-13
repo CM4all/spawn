@@ -1,6 +1,6 @@
 cm4all-spawn (0.5) unstable; urgency=low
 
-  * 
+  * debian: use debhelper 12
 
  --   
 
