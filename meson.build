@@ -52,6 +52,10 @@ test_cxxflags = test_common_flags + [
   '-fmerge-all-constants',
   '-Wno-missing-field-initializers',
   '-Wno-non-virtual-dtor',
+
+  # the only warnings we got from this are from formatted error
+  # messages, and their truncation is harmless
+  '-Wno-format-truncation',
 ]
 
 add_global_arguments(common_flags, language: 'cpp')
