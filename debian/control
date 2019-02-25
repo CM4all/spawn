@@ -44,7 +44,7 @@ Description: NSS module which synthesizes a passwd entry from $LOGNAME
 Package: cm4all-spawn-doc
 Section: non-free/doc
 Architecture: all
-Depends: ${misc:Depends}
+Depends: ${misc:Depends}, ${sphinxdoc:Depends}
 Description: Documentation for cm4all-spawn
  cm4all-spawn is a daemon which provides services to other daemons
  wishing to spawn child processes.

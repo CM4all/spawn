@@ -2,6 +2,7 @@ cm4all-spawn (0.5) unstable; urgency=low
 
   * debian: use debhelper 12
   * debian/control: depend on systemd >= 233 for cgroupv2 support
+  * debian/rules: use dh_sphinxdoc
 
  --   
 
