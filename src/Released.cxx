@@ -191,7 +191,8 @@ ReadCgroupCpuStat(const char *relative_path)
 }
 
 static void
-CollectCgroupStats(const char *relative_path, const char *suffix)
+CollectCgroupStats(const char *relative_path, const char *suffix,
+		   bool have_unified)
 {
 	// TODO: blkio
 	// TODO: multicast statistics
@@ -201,15 +202,17 @@ CollectCgroupStats(const char *relative_path, const char *suffix)
 
 	bool have_cpu_stat = false;
 
-	try {
-		const auto cpu_stat = ReadCgroupCpuStat(relative_path);
-		position += sprintf(buffer + position, " cpu=%fs/%fs/%fs",
-				    cpu_stat.total.count(),
-				    cpu_stat.user.count(),
-				    cpu_stat.system.count());
-		have_cpu_stat = true;
-	} catch (...) {
-		PrintException(std::current_exception());
+	if (have_unified) {
+		try {
+			const auto cpu_stat = ReadCgroupCpuStat(relative_path);
+			position += sprintf(buffer + position, " cpu=%fs/%fs/%fs",
+					    cpu_stat.total.count(),
+					    cpu_stat.user.count(),
+					    cpu_stat.system.count());
+			have_cpu_stat = true;
+		} catch (...) {
+			PrintException(std::current_exception());
+		}
 	}
 
 	if (!have_cpu_stat) {
@@ -270,7 +273,7 @@ Instance::OnSystemdAgentReleased(const char *path)
 	if (suffix == nullptr)
 		return;
 
-	CollectCgroupStats(path, suffix);
+	CollectCgroupStats(path, suffix, !!unified_cgroup_watch);
 	fflush(stdout);
 
 	// TODO: delay this call?
