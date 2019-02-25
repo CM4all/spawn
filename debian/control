@@ -12,7 +12,7 @@ Vcs-git: git@dev.intern.cm-ag:max/spawn.git
 Package: cm4all-spawn
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends},
- systemd-sysv (>= 233~), dbus,
+ systemd-sysv (>= 229~), dbus,
  cm4all-slice (>= 0.2)
 Description: Process spawner helper daemon
  cm4all-spawn is a daemon which provides services to other daemons
