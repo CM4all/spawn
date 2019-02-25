@@ -47,7 +47,6 @@
 #include <string>
 
 class UnifiedCgroupWatch;
-class SystemdAgent;
 
 class Instance final : ODBus::WatchManagerObserver  {
 	EventLoop event_loop;
@@ -65,7 +64,6 @@ class Instance final : ODBus::WatchManagerObserver  {
 	TimerEvent dbus_reconnect_timer;
 
 	std::unique_ptr<UnifiedCgroupWatch> unified_cgroup_watch;
-	std::unique_ptr<SystemdAgent> agent;
 
 	NamespaceMap namespaces;
 

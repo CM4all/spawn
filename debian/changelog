@@ -1,6 +1,6 @@
 cm4all-spawn (0.6) unstable; urgency=low
 
-  * 
+  * remove support for the old systemd agent
 
  --   
 

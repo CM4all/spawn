@@ -34,7 +34,6 @@
 #include "Namespace.hxx"
 #include "Scopes.hxx"
 #include "UnifiedWatch.hxx"
-#include "Agent.hxx"
 #include "odbus/Connection.hxx"
 #include "spawn/Systemd.hxx"
 #include "net/AllocatedSocketAddress.hxx"
@@ -98,7 +97,7 @@ Instance::Instance()
 			unified_cgroup_watch->AddCgroup(relative_path);
 		}
 	} else
-		agent = std::make_unique<SystemdAgent>(BIND_THIS_METHOD(OnSystemdAgentReleased));
+		throw std::runtime_error("systemd unified cgroup is not available");
 
 	ConnectDBus();
 
@@ -123,7 +122,6 @@ Instance::OnExit() noexcept
 	shutdown_listener.Disable();
 	sighup_event.Disable();
 
-	agent.reset();
 	unified_cgroup_watch.reset();
 }
 
@@ -141,9 +139,6 @@ Instance::ConnectDBus()
 	   restarted */
 	dbus_connection_set_exit_on_disconnect(dbus_watch.GetConnection(),
 					       false);
-
-	if (agent)
-		agent->SetConnection(dbus_watch.GetConnection());
 }
 
 void
