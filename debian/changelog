@@ -4,7 +4,7 @@ cm4all-spawn (0.5) unstable; urgency=low
   * debian: use debhelper 12
   * debian/rules: use dh_sphinxdoc
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Mon, 25 Feb 2019 17:23:47 +0100
 
 cm4all-spawn (0.4) unstable; urgency=low
 
