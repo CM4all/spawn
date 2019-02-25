@@ -83,8 +83,6 @@ Instance::Instance()
 {
 	listener.Listen(CreateBindLocalSocket("@cm4all-spawn"));
 
-	ConnectDBus();
-
 	if (!cgroup_state.IsEnabled())
 		throw std::runtime_error("systemd cgroups are not available");
 
@@ -101,6 +99,8 @@ Instance::Instance()
 		}
 	} else
 		agent = std::make_unique<SystemdAgent>(BIND_THIS_METHOD(OnSystemdAgentReleased));
+
+	ConnectDBus();
 
 	shutdown_listener.Enable();
 	sighup_event.Enable();
