@@ -1,4 +1,4 @@
-project('CM4all spawn', 'cpp', version: '0.5',
+project('CM4all spawn', 'cpp', version: '0.6',
   meson_version: '>= 0.47',
   default_options: [
     'cpp_std=c++17'
