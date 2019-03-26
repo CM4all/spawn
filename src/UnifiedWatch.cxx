@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Content Management AG
+ * Copyright 2017-2019 Content Management AG
  * All rights reserved.
  *
  * author: Max Kellermann <mk@cm4all.com>
@@ -31,7 +31,10 @@
  */
 
 #include "UnifiedWatch.hxx"
+#include "event/SocketEvent.hxx"
 #include "io/Open.hxx"
+#include "io/UniqueFileDescriptor.hxx"
+#include "util/BindMethod.hxx"
 #include "util/PrintException.hxx"
 #include "util/ScopeExit.hxx"
 
@@ -61,6 +64,28 @@ IsPopulated(FileDescriptor fd) noexcept
 	return strstr(buffer, "populated 0") == nullptr;
 }
 
+class UnifiedCgroupWatch::Group {
+	UnifiedCgroupWatch &parent;
+
+	const std::string relative_path;
+
+	UniqueFileDescriptor fd;
+
+	SocketEvent event;
+
+public:
+	Group(UnifiedCgroupWatch &_parent,
+	      const std::string &_relative_path,
+	      UniqueFileDescriptor &&_fd) noexcept;
+
+	const std::string &GetRelativePath() noexcept {
+		return relative_path;
+	}
+
+private:
+	void EventCallback(unsigned events) noexcept;
+};
+
 UnifiedCgroupWatch::Group::Group(UnifiedCgroupWatch &_parent,
 				 const std::string &_relative_path,
 				 UniqueFileDescriptor &&_fd) noexcept
@@ -86,6 +111,8 @@ UnifiedCgroupWatch::UnifiedCgroupWatch(EventLoop &event_loop,
 	 callback(_callback)
 {
 }
+
+UnifiedCgroupWatch::~UnifiedCgroupWatch() noexcept = default;
 
 void
 UnifiedCgroupWatch::AddCgroup(const char *relative_path)

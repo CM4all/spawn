@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Content Management AG
+ * Copyright 2017-2019 Content Management AG
  * All rights reserved.
  *
  * author: Max Kellermann <mk@cm4all.com>
@@ -33,9 +33,6 @@
 #pragma once
 
 #include "TreeWatch.hxx"
-#include "io/UniqueFileDescriptor.hxx"
-#include "event/SocketEvent.hxx"
-#include "util/BindMethod.hxx"
 
 #include <map>
 #include <string>
@@ -47,27 +44,7 @@ class UnifiedCgroupWatch final : TreeWatch {
 	typedef BoundMethod<void(const char *relative_path)> Callback;
 	const Callback callback;
 
-	class Group {
-		UnifiedCgroupWatch &parent;
-
-		const std::string relative_path;
-
-		UniqueFileDescriptor fd;
-
-		SocketEvent event;
-
-	public:
-		Group(UnifiedCgroupWatch &_parent,
-		      const std::string &_relative_path,
-		      UniqueFileDescriptor &&_fd) noexcept;
-
-		const std::string &GetRelativePath() noexcept {
-			return relative_path;
-		}
-
-	private:
-		void EventCallback(unsigned events) noexcept;
-	};
+	class Group;
 
 	std::map<std::string, Group> groups;
 
@@ -75,6 +52,7 @@ class UnifiedCgroupWatch final : TreeWatch {
 
 public:
 	UnifiedCgroupWatch(EventLoop &event_loop, Callback _callback);
+	~UnifiedCgroupWatch() noexcept;
 
 	void AddCgroup(const char *relative_path);
 
