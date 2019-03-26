@@ -34,7 +34,6 @@
 #include "Namespace.hxx"
 #include "Scopes.hxx"
 #include "UnifiedWatch.hxx"
-#include "odbus/Connection.hxx"
 #include "spawn/Systemd.hxx"
 #include "net/AllocatedSocketAddress.hxx"
 #include "net/UniqueSocketDescriptor.hxx"
@@ -43,8 +42,6 @@
 
 #include <signal.h>
 #include <unistd.h>
-
-static constexpr auto dbus_reconnect_delay = std::chrono::seconds(5);
 
 static UniqueSocketDescriptor
 CreateBindLocalSocket(const char *path)
@@ -76,9 +73,7 @@ Instance::Instance()
 					 "Process spawner helper daemon",
 					 {},
 					 getpid(), true,
-					 "system-cm4all.slice")),
-	 dbus_watch(event_loop, *this),
-	 dbus_reconnect_timer(event_loop, BIND_THIS_METHOD(ReconnectDBus))
+					 "system-cm4all.slice"))
 {
 	listener.Listen(CreateBindLocalSocket("@cm4all-spawn"));
 
@@ -99,8 +94,6 @@ Instance::Instance()
 	} else
 		throw std::runtime_error("systemd unified cgroup is not available");
 
-	ConnectDBus();
-
 	shutdown_listener.Enable();
 	sighup_event.Enable();
 }
@@ -118,7 +111,6 @@ Instance::OnExit() noexcept
 	listener.RemoveEvent();
 	listener.CloseAllConnections();
 
-	dbus_watch.Shutdown();
 	shutdown_listener.Disable();
 	sighup_event.Disable();
 
@@ -128,34 +120,4 @@ Instance::OnExit() noexcept
 void
 Instance::OnReload(int) noexcept
 {
-}
-
-void
-Instance::ConnectDBus()
-{
-	dbus_watch.SetConnection(ODBus::Connection::GetSystem());
-
-	/* this daemon should keep running even when DBus gets
-	   restarted */
-	dbus_connection_set_exit_on_disconnect(dbus_watch.GetConnection(),
-					       false);
-}
-
-void
-Instance::ReconnectDBus() noexcept
-{
-	try {
-		ConnectDBus();
-		fprintf(stderr, "Reconnected to DBus\n");
-	} catch (...) {
-		PrintException(std::current_exception());
-		dbus_reconnect_timer.Schedule(dbus_reconnect_delay);
-	}
-}
-
-void
-Instance::OnDBusClosed() noexcept
-{
-	fprintf(stderr, "Connection to DBus lost\n");
-	dbus_reconnect_timer.Schedule(dbus_reconnect_delay);
 }

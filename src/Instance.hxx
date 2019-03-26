@@ -38,8 +38,6 @@
 #include "event/Loop.hxx"
 #include "event/ShutdownListener.hxx"
 #include "event/SignalEvent.hxx"
-#include "event/TimerEvent.hxx"
-#include "odbus/Watch.hxx"
 #include "spawn/CgroupState.hxx"
 
 #include <map>
@@ -48,7 +46,7 @@
 
 class UnifiedCgroupWatch;
 
-class Instance final : ODBus::WatchManagerObserver  {
+class Instance final {
 	EventLoop event_loop;
 
 	bool should_exit = false;
@@ -59,9 +57,6 @@ class Instance final : ODBus::WatchManagerObserver  {
 	SpawnListener listener;
 
 	const CgroupState cgroup_state;
-
-	ODBus::WatchManager dbus_watch;
-	TimerEvent dbus_reconnect_timer;
 
 	std::unique_ptr<UnifiedCgroupWatch> unified_cgroup_watch;
 
@@ -87,13 +82,7 @@ private:
 	void OnExit() noexcept;
 	void OnReload(int) noexcept;
 
-	void ConnectDBus();
-	void ReconnectDBus() noexcept;
-
 	void OnSystemdAgentReleased(const char *path);
-
-	/* virtual methods from ODBus::WatchManagerObserver */
-	void OnDBusClosed() noexcept override;
 };
 
 #endif
