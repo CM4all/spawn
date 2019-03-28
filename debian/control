@@ -7,7 +7,8 @@ Build-Depends: debhelper (>= 12~),
  libsystemd-dev, libdbus-1-dev,
  python3-sphinx
 Standards-Version: 4.0.0
-Vcs-git: git@dev.intern.cm-ag:max/spawn.git
+Vcs-Browser: https://github.com/CM4all/spawn
+Vcs-Git: git://github.com/CM4all/spawn
 
 Package: cm4all-spawn
 Architecture: any
