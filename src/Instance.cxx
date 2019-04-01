@@ -73,7 +73,9 @@ Instance::Instance()
 					 "Process spawner helper daemon",
 					 {},
 					 getpid(), true,
-					 "system-cm4all.slice"))
+					 "system-cm4all.slice")),
+	 defer_cgroup_delete(event_loop,
+			     BIND_THIS_METHOD(OnDeferredCgroupDelete))
 {
 	listener.Listen(CreateBindLocalSocket("@cm4all-spawn"));
 

@@ -276,6 +276,20 @@ Instance::OnSystemdAgentReleased(const char *path) noexcept
 	CollectCgroupStats(path, suffix, !!unified_cgroup_watch);
 	fflush(stdout);
 
-	// TODO: delay this call?
-	DestroyCgroup(cgroup_state, path);
+	/* defer the deletion, because unpopulated children of this
+	   cgroup may still exist; this deferral attempts to get the
+	   ordering right */
+	cgroup_delete_queue.emplace(path);
+	defer_cgroup_delete.Schedule();
+}
+
+void
+Instance::OnDeferredCgroupDelete() noexcept
+{
+	/* delete the sorted set in reverse order */
+	for (auto i = cgroup_delete_queue.rbegin();
+	     i != cgroup_delete_queue.rend(); ++i)
+		DestroyCgroup(cgroup_state, i->c_str());
+
+	cgroup_delete_queue.clear();
 }

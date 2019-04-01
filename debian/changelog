@@ -2,6 +2,7 @@ cm4all-spawn (0.6) unstable; urgency=low
 
   * remove support for the old systemd agent
   * watch scopes in cm4all.slice
+  * fix deletion of nested cgroups
 
  --   
 

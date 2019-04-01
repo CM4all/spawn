@@ -38,10 +38,11 @@
 #include "event/Loop.hxx"
 #include "event/ShutdownListener.hxx"
 #include "event/SignalEvent.hxx"
+#include "event/DeferEvent.hxx"
 #include "spawn/CgroupState.hxx"
 
-#include <map>
 #include <memory>
+#include <set>
 #include <string>
 
 class UnifiedCgroupWatch;
@@ -59,6 +60,9 @@ class Instance final {
 	const CgroupState cgroup_state;
 
 	std::unique_ptr<UnifiedCgroupWatch> unified_cgroup_watch;
+
+	std::set<std::string> cgroup_delete_queue;
+	DeferEvent defer_cgroup_delete;
 
 	NamespaceMap namespaces;
 
@@ -83,6 +87,7 @@ private:
 	void OnReload(int) noexcept;
 
 	void OnSystemdAgentReleased(const char *path) noexcept;
+	void OnDeferredCgroupDelete() noexcept;
 };
 
 #endif
