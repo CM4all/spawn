@@ -254,7 +254,7 @@ CollectCgroupStats(const char *relative_path, const char *suffix,
 }
 
 static void
-DestroyCgroup(const CgroupState &state, const char *relative_path)
+DestroyCgroup(const CgroupState &state, const char *relative_path) noexcept
 {
 	for (const auto &mount : state.mounts) {
 		char buffer[4096];
@@ -267,7 +267,7 @@ DestroyCgroup(const CgroupState &state, const char *relative_path)
 }
 
 void
-Instance::OnSystemdAgentReleased(const char *path)
+Instance::OnSystemdAgentReleased(const char *path) noexcept
 {
 	const char *suffix = GetManagedSuffix(path);
 	if (suffix == nullptr)

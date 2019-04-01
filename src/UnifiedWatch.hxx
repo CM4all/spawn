@@ -41,7 +41,7 @@
  * Watch events in the "unified" (v2) cgroup hierarchy.
  */
 class UnifiedCgroupWatch final : TreeWatch {
-	typedef BoundMethod<void(const char *relative_path)> Callback;
+	typedef BoundMethod<void(const char *relative_path) noexcept> Callback;
 	const Callback callback;
 
 	class Group;
