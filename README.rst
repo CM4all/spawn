@@ -10,10 +10,10 @@ Building spawn
 
 You need:
 
-- a C++14 compliant compiler (e.g. gcc or clang)
+- a C++17 compliant compiler (e.g. gcc or clang)
 - `systemd <https://www.freedesktop.org/wiki/Software/systemd/>`__
 - `D-Bus <https://www.freedesktop.org/wiki/Software/dbus/>`__
-- `Meson 0.37 <http://mesonbuild.com/>`__ and `Ninja <https://ninja-build.org/>`__
+- `Meson 0.47 <http://mesonbuild.com/>`__ and `Ninja <https://ninja-build.org/>`__
 
 Run ``meson``::
 
