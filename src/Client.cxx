@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Content Management AG
+ * Copyright 2017-2019 Content Management AG
  * All rights reserved.
  *
  * author: Max Kellermann <mk@cm4all.com>
@@ -75,15 +75,16 @@ SendMakeNamespaces(SocketDescriptor s, StringView name,
 
 static void
 SetNs(ConstBuffer<uint32_t> nstypes,
-      std::forward_list<UniqueFileDescriptor> &&fds)
+      std::vector<UniqueFileDescriptor> &&fds)
 {
-	assert(nstypes.size == (size_t)std::distance(fds.begin(), fds.end()));
+	assert(nstypes.size == fds.size());
 
+	auto i = fds.begin();
 	for (auto nstype : nstypes) {
-		if (setns(fds.front().Get(), nstype) < 0)
+		if (setns(i->Get(), nstype) < 0)
 			throw FormatErrno("setns(0x%x) failed", nstype);
 
-		fds.pop_front();
+		++i;
 	}
 }
 
