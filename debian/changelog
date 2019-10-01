@@ -4,7 +4,7 @@ cm4all-spawn (0.6) unstable; urgency=low
   * watch scopes in cm4all.slice
   * fix deletion of nested cgroups
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Tue, 01 Oct 2019 16:29:56 +0200
 
 cm4all-spawn (0.5) unstable; urgency=low
 
