@@ -93,12 +93,12 @@ TreeWatch::Directory::Open(FileDescriptor parent_fd)
 }
 
 int
-TreeWatch::Directory::AddWatch(FileDescriptor inotify_fd)
+TreeWatch::Directory::AddWatch(FileDescriptor inotify_fd_)
 {
 	assert(watch_descriptor < 0);
 
 	const auto path = GetPath();
-	watch_descriptor = inotify_add_watch(inotify_fd.Get(), path.c_str(),
+	watch_descriptor = inotify_add_watch(inotify_fd_.Get(), path.c_str(),
 					     IN_DONT_FOLLOW|IN_EXCL_UNLINK|IN_ONLYDIR|
 					     IN_CREATE|IN_DELETE|IN_MOVED_FROM|IN_MOVED_TO);
 	if (watch_descriptor < 0)
