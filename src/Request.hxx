@@ -38,7 +38,7 @@
 
 struct StringView;
 template<typename T> struct ConstBuffer;
-namespace SpawnDaemon { enum class RequestCommand : uint16_t; };
+namespace SpawnDaemon { enum class RequestCommand : uint16_t; }
 
 struct SpawnRequest {
 	std::string name;
