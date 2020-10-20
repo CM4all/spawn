@@ -48,6 +48,7 @@
 #include <boost/crc.hpp>
 
 #include <assert.h>
+#include <sched.h> // for CLONE_*
 
 using namespace SpawnDaemon;
 
