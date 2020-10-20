@@ -45,6 +45,7 @@
 
 #include <boost/crc.hpp>
 
+#include <sched.h> // for CLONE_*
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/wait.h>
