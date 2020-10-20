@@ -50,8 +50,6 @@ class SpawnConnection final
 
 	Instance &instance;
 
-	const struct ucred peer_cred;
-
 	UdpListener listener;
 
 public:

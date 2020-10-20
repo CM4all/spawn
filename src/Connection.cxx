@@ -55,7 +55,6 @@ SpawnConnection::SpawnConnection(Instance &_instance,
 				 UniqueSocketDescriptor &&_fd,
 				 SocketAddress)
 	:instance(_instance),
-	 peer_cred(_fd.GetPeerCredentials()),
 	 listener(instance.GetEventLoop(), std::move(_fd), *this) {}
 
 void
