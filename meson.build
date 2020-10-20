@@ -1,7 +1,8 @@
 project('CM4all spawn', 'cpp', version: '0.7',
   meson_version: '>= 0.47',
   default_options: [
-    'cpp_std=c++17'
+    'cpp_std=c++17',
+    'warning_level=3',
   ],
 )
 
