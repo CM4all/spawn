@@ -38,7 +38,7 @@
 #include <sched.h>
 #include <signal.h>
 
-Namespace::~Namespace()
+Namespace::~Namespace() noexcept
 {
 	if (pid_init > 0)
 		kill(pid_init, SIGTERM);
