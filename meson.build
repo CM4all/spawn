@@ -17,7 +17,6 @@ common_flags = [
   '-Wmissing-declarations', '-Wmissing-noreturn', '-Wmissing-format-attribute',
   '-Wredundant-decls', '-Wno-long-long', '-Wundef',
   '-Wunused',
-  '-Wundef',
 ]
 
 test_common_flags = [
