@@ -24,9 +24,7 @@ test_common_flags = [
   '-fvisibility=hidden',
 ]
 
-if debug
-  common_flags += ['-DPOISON']
-else
+if not debug
   test_common_flags += [
     '-ffunction-sections',
     '-fdata-sections',
