@@ -1,6 +1,6 @@
 cm4all-spawn (0.7) unstable; urgency=low
 
-  * 
+  * meson.build: disable ld.so lazy binding and enable relro
 
  --   
 
