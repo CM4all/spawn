@@ -69,6 +69,7 @@ inc = include_directories(
 )
 
 libcommon_enable_c = false
+libcommon_enable_boost = false
 libcommon_enable_DefaultFifoBuffer = false
 libcommon_enable_AllocatorPtr = false
 libcommon_enable_net_log = false
