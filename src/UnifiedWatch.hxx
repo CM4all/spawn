@@ -51,7 +51,8 @@ class UnifiedCgroupWatch final : TreeWatch {
 	bool in_add = false;
 
 public:
-	UnifiedCgroupWatch(EventLoop &event_loop, Callback _callback);
+	UnifiedCgroupWatch(EventLoop &event_loop, const char *cgroup2_mount,
+			   Callback _callback);
 	~UnifiedCgroupWatch() noexcept;
 
 	void AddCgroup(const char *relative_path);
@@ -64,6 +65,3 @@ protected:
 				FileDescriptor directory_fd) noexcept override;
 	void OnDirectoryDeleted(const std::string &relative_path) noexcept override;
 };
-
-bool
-HasUnifiedCgroups() noexcept;

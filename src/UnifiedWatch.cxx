@@ -41,16 +41,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/stat.h>
-
-static constexpr const char *unified_mount = "/sys/fs/cgroup/unified";
-
-bool
-HasUnifiedCgroups() noexcept
-{
-	struct stat st;
-	return lstat(unified_mount, &st) == 0;
-}
 
 static bool
 IsPopulated(FileDescriptor fd) noexcept
@@ -106,8 +96,9 @@ UnifiedCgroupWatch::Group::EventCallback(unsigned) noexcept
 }
 
 UnifiedCgroupWatch::UnifiedCgroupWatch(EventLoop &event_loop,
+				       const char *cgroup2_mount,
 				       Callback _callback)
-	:TreeWatch(event_loop, unified_mount),
+	:TreeWatch(event_loop, cgroup2_mount),
 	 callback(_callback)
 {
 }
