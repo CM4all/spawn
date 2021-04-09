@@ -3,7 +3,7 @@ cm4all-spawn (0.7) unstable; urgency=low
   * support cgroup2 mount on /sys/fs/cgroup
   * meson.build: disable ld.so lazy binding and enable relro
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Fri, 09 Apr 2021 08:54:02 +0200
 
 cm4all-spawn (0.6) unstable; urgency=low
 
