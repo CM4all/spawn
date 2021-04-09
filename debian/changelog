@@ -1,3 +1,9 @@
+cm4all-spawn (0.8) unstable; urgency=low
+
+  * 
+
+ --   
+
 cm4all-spawn (0.7) unstable; urgency=low
 
   * support cgroup2 mount on /sys/fs/cgroup
