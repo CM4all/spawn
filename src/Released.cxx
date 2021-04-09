@@ -33,6 +33,7 @@
 #include "Instance.hxx"
 #include "Scopes.hxx"
 #include "system/Error.hxx"
+#include "io/Open.hxx"
 #include "io/UniqueFileDescriptor.hxx"
 #include "util/StringCompare.hxx"
 #include "util/ScopeExit.hxx"
@@ -65,10 +66,7 @@ OpenCgroupUnifiedFile(const char *relative_path, const char *filename)
 	snprintf(path, sizeof(path), "/sys/fs/cgroup/unified%s/%s",
 		 relative_path, filename);
 
-	UniqueFileDescriptor fd;
-	if (!fd.OpenReadOnly(path))
-		throw FormatErrno("Failed to open %s", path);
-	return fd;
+	return OpenReadOnly(path);
 }
 
 static UniqueFileDescriptor
@@ -80,10 +78,7 @@ OpenCgroupFile(const char *relative_path, const char *controller_name,
 		 controller_name, relative_path,
 		 controller_name, filename);
 
-	UniqueFileDescriptor fd;
-	if (!fd.OpenReadOnly(path))
-		throw FormatErrno("Failed to open %s", path);
-	return fd;
+	return OpenReadOnly(path);
 }
 
 static size_t
