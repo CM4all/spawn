@@ -60,13 +60,14 @@ GetManagedSuffix(const char *path)
 }
 
 static UniqueFileDescriptor
-OpenCgroupUnifiedFile(const char *relative_path, const char *filename)
+OpenCgroupUnifiedFile(FileDescriptor v2_mount,
+		      const char *relative_path, const char *filename)
 {
 	char path[4096];
-	snprintf(path, sizeof(path), "/sys/fs/cgroup/unified%s/%s",
-		 relative_path, filename);
+	snprintf(path, sizeof(path), "%s/%s",
+		 relative_path + 1, filename);
 
-	return OpenReadOnly(path);
+	return OpenReadOnly(v2_mount, path);
 }
 
 static UniqueFileDescriptor
@@ -161,10 +162,11 @@ FindLine(const char *data, const char *name)
 }
 
 static CpuStat
-ReadCgroupCpuStat(const char *relative_path)
+ReadCgroupCpuStat(FileDescriptor v2_mount, const char *relative_path)
 {
 	char buffer[4096];
-	const char *data = ReadFileZ(OpenCgroupUnifiedFile(relative_path,
+	const char *data = ReadFileZ(OpenCgroupUnifiedFile(v2_mount,
+							   relative_path,
 							   "cpu.stat"),
 				     buffer, sizeof(buffer));
 
@@ -187,7 +189,7 @@ ReadCgroupCpuStat(const char *relative_path)
 
 static void
 CollectCgroupStats(const char *relative_path, const char *suffix,
-		   const CgroupState &state, bool have_unified)
+		   const CgroupState &state)
 {
 	// TODO: blkio
 	// TODO: multicast statistics
@@ -197,9 +199,20 @@ CollectCgroupStats(const char *relative_path, const char *suffix,
 
 	bool have_cpu_stat = false;
 
-	if (have_unified) {
+	UniqueFileDescriptor v2_mount;
+	if (const auto v2_mount_path = state.GetUnifiedMount();
+	    !v2_mount_path.empty()) {
 		try {
-			const auto cpu_stat = ReadCgroupCpuStat(relative_path);
+			v2_mount = OpenPath(v2_mount_path.c_str());
+		} catch (...) {
+			PrintException(std::current_exception());
+		}
+	}
+
+	if (v2_mount.IsDefined()) {
+		try {
+			const auto cpu_stat = ReadCgroupCpuStat(v2_mount,
+								relative_path);
 			position += sprintf(buffer + position, " cpu=%fs/%fs/%fs",
 					    cpu_stat.total.count(),
 					    cpu_stat.user.count(),
@@ -272,7 +285,7 @@ Instance::OnSystemdAgentReleased(const char *path) noexcept
 	if (suffix == nullptr)
 		return;
 
-	CollectCgroupStats(path, suffix, cgroup_state, !!unified_cgroup_watch);
+	CollectCgroupStats(path, suffix, cgroup_state);
 	fflush(stdout);
 
 	/* defer the deletion, because unpopulated children of this
