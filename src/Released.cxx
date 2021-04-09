@@ -192,7 +192,7 @@ ReadCgroupCpuStat(const char *relative_path)
 
 static void
 CollectCgroupStats(const char *relative_path, const char *suffix,
-		   bool have_unified)
+		   const CgroupState &state, bool have_unified)
 {
 	// TODO: blkio
 	// TODO: multicast statistics
@@ -238,15 +238,19 @@ CollectCgroupStats(const char *relative_path, const char *suffix,
 		}
 	}
 
-	try {
-		static constexpr uint64_t MEGA = 1024 * 1024;
+	/* cgroup2 doesn't have something like
+	   "memory.max_usage_in_bytes" */
+	if (!state.memory_v2) {
+		try {
+			static constexpr uint64_t MEGA = 1024 * 1024;
 
-		position += sprintf(buffer + position,
-				    " memory=%" PRIu64 "M",
-				    (ReadCgroupNumber(relative_path, "memory",
-						      "max_usage_in_bytes") + MEGA / 2 - 1) / MEGA);
-	} catch (...) {
-		PrintException(std::current_exception());
+			position += sprintf(buffer + position,
+					    " memory=%" PRIu64 "M",
+					    (ReadCgroupNumber(relative_path, "memory",
+							      "max_usage_in_bytes") + MEGA / 2 - 1) / MEGA);
+		} catch (...) {
+			PrintException(std::current_exception());
+		}
 	}
 
 	if (position > 0)
@@ -273,7 +277,7 @@ Instance::OnSystemdAgentReleased(const char *path) noexcept
 	if (suffix == nullptr)
 		return;
 
-	CollectCgroupStats(path, suffix, !!unified_cgroup_watch);
+	CollectCgroupStats(path, suffix, cgroup_state, !!unified_cgroup_watch);
 	fflush(stdout);
 
 	/* defer the deletion, because unpopulated children of this
