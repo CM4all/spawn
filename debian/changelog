@@ -1,6 +1,6 @@
 cm4all-spawn (0.8) unstable; urgency=low
 
-  * 
+  * nss: don't hide exported symbols
 
  --   
 

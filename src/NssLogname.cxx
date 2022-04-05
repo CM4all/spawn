@@ -30,6 +30,8 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "util/Compiler.h"
+
 #include <pwd.h>
 #include <nss.h>
 #include <stddef.h>
@@ -41,23 +43,28 @@
 
 extern "C" {
 
+gcc_visibility_default
 enum nss_status
 _nss_cm4all_logname_setpwent();
 
+gcc_visibility_default
 enum nss_status
 _nss_cm4all_logname_endpwent();
 
+gcc_visibility_default
 enum nss_status
 _nss_cm4all_logname_getpwent_r(struct passwd *result,
 			       char *buffer, size_t buflen,
 			       int *errnop);
 
+gcc_visibility_default
 enum nss_status
 _nss_cm4all_logname_getpwnam_r(const char *name,
 			       struct passwd *result,
 			       char *buffer, size_t buflen,
 			       int *errnop);
 
+gcc_visibility_default
 enum nss_status
 _nss_cm4all_logname_getpwuid_r(uid_t uid,
 			       struct passwd *result,
