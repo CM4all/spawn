@@ -271,7 +271,7 @@ DestroyCgroup(const CgroupState &state, const char *relative_path) noexcept
 	for (const auto &mount : state.mounts) {
 		char buffer[4096];
 		snprintf(buffer, sizeof(buffer), "/sys/fs/cgroup/%s%s",
-			 mount.c_str(), relative_path);
+			 mount.name.c_str(), relative_path);
 		if (rmdir(buffer) < 0 && errno != ENOENT)
 			fprintf(stderr, "Failed to delete '%s': %s\n",
 				buffer, strerror(errno));

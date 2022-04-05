@@ -175,7 +175,7 @@ TreeWatch::AddWatch(Directory &directory)
 {
 	assert(directory.IsOpen());
 
-	gcc_unused auto i =
+	[[maybe_unused]] auto i =
 		watch_descriptor_map.emplace(directory.AddWatch(inotify_fd),
 					     &directory);
 	assert(i.second);

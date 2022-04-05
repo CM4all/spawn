@@ -93,7 +93,7 @@ system_dep = declare_dependency(
 subdir('libcommon/src/event')
 subdir('libcommon/src/net')
 subdir('libcommon/src/event/net')
-subdir('libcommon/src/odbus')
+subdir('libcommon/src/lib/dbus')
 subdir('libcommon/src/spawn')
 
 executable('cm4all-spawn',

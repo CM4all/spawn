@@ -143,49 +143,50 @@ SpawnConnection::OnRequest(SpawnRequest &&request)
 }
 
 bool
-SpawnConnection::OnUdpDatagram(const void *data, size_t length,
+SpawnConnection::OnUdpDatagram(ConstBuffer<void> payload,
+			       WritableBuffer<UniqueFileDescriptor>,
 			       SocketAddress, int)
 try {
-	if (length == 0) {
+	if (payload.empty()) {
 		delete this;
 		return false;
 	}
 
-	const auto &dh = *(const DatagramHeader *)data;
-	if (length < sizeof(dh) || dh.magic != MAGIC)
+	const auto &dh = *(const DatagramHeader *)payload.data;
+	if (payload.size < sizeof(dh) || dh.magic != MAGIC)
 		throw std::runtime_error("Malformed datagram");
 
-	data = &dh + 1;
-	length -= sizeof(dh);
+	payload.data = &dh + 1;
+	payload.size -= sizeof(dh);
 
 	{
 		boost::crc_32_type crc;
 		crc.reset();
-		crc.process_bytes(data, length);
+		crc.process_bytes(payload.data, payload.size);
 		if (dh.crc != crc.checksum())
 			throw std::runtime_error("Bad CRC");
 	}
 
 	SpawnRequest request;
 
-	while (length > 0) {
-		const auto &rh = *(const RequestHeader *)data;
-		if (length < sizeof(rh))
+	while (!payload.empty()) {
+		const auto &rh = *(const RequestHeader *)payload.data;
+		if (payload.size < sizeof(rh))
 			throw std::runtime_error("Malformed request in datagram");
 
-		data = &rh + 1;
-		length -= sizeof(rh);
+		payload.data = &rh + 1;
+		payload.size -= sizeof(rh);
 
 		const size_t payload_size = rh.size;
 		const size_t padded_size = (payload_size + 3) & (~3u);
 
-		if (length < padded_size)
+		if (payload.size < padded_size)
 			throw std::runtime_error("Malformed request in datagram");
-		length -= padded_size;
+		payload.size -= padded_size;
 
-		request.Apply(rh.command, {data, payload_size});
+		request.Apply(rh.command, {payload.data, payload_size});
 
-		data = (const uint8_t *)data + padded_size;
+		payload.data = (const uint8_t *)payload.data + padded_size;
 	}
 
 	OnRequest(std::move(request));
