@@ -2,7 +2,7 @@ cm4all-spawn (0.8) unstable; urgency=low
 
   * nss: don't hide exported symbols
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Wed, 27 Apr 2022 12:36:28 +0200
 
 cm4all-spawn (0.7) unstable; urgency=low
 
