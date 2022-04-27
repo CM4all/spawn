@@ -15,11 +15,21 @@ common_flags = [
 ]
 
 test_common_flags = [
-  '-Wwrite-strings', '-Wcast-qual', '-Wcast-align', '-Wfloat-equal',
-  '-Wshadow', '-Wpointer-arith', '-Wsign-compare',
-  '-Wmissing-declarations', '-Wmissing-noreturn', '-Wmissing-format-attribute',
-  '-Wredundant-decls', '-Wno-long-long', '-Wundef',
+  '-Wcast-align',
+  '-Wcast-qual',
+  '-Wfloat-equal',
+  '-Wmissing-declarations',
+  '-Wmissing-noreturn',
+  '-Wmissing-format-attribute',
+  '-Wpointer-arith',
+  '-Wredundant-decls',
+  '-Wshadow',
+  '-Wsign-compare',
+  '-Wundef',
   '-Wunused',
+  '-Wwrite-strings',
+
+  '-Wno-long-long',
 ]
 
 test_global_common_flags = [
@@ -58,6 +68,7 @@ test_global_cxxflags = test_global_common_flags + [
 test_cxxflags = test_common_flags + [
   '-fno-threadsafe-statics',
   '-fmerge-all-constants',
+
   '-Wno-missing-field-initializers',
   '-Wno-non-virtual-dtor',
 
