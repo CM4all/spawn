@@ -33,6 +33,7 @@
 #include "Instance.hxx"
 #include "Scopes.hxx"
 #include "CgroupAccounting.hxx"
+#include "LAccounting.hxx"
 #include "util/StringCompare.hxx"
 
 #include <fcntl.h> // for AT_REMOVEDIR
@@ -59,8 +60,6 @@ static void
 CollectCgroupStats(const char *suffix,
 		   const CgroupResourceUsage &u)
 {
-	// TODO: multicast statistics
-
 	char buffer[4096];
 	size_t position = 0;
 
@@ -115,6 +114,9 @@ Instance::OnSystemdAgentReleased(const char *path) noexcept
 	const auto u = ReadCgroupResourceUsage(cgroup_state, path);
 
 	CollectCgroupStats(suffix, u);
+
+	if (lua_accounting)
+		lua_accounting->InvokeCgroupReleased(u);
 
 	/* defer the deletion, because unpopulated children of this
 	   cgroup may still exist; this deferral attempts to get the

@@ -30,69 +30,58 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef INSTANCE_HXX
-#define INSTANCE_HXX
+#pragma once
 
-#include "Listener.hxx"
-#include "NamespaceMap.hxx"
+#include "lua/Resume.hxx"
 #include "lua/State.hxx"
 #include "lua/ValuePtr.hxx"
-#include "event/Loop.hxx"
-#include "event/ShutdownListener.hxx"
-#include "event/SignalEvent.hxx"
-#include "event/DeferEvent.hxx"
-#include "spawn/CgroupState.hxx"
+#include "lua/CoRunner.hxx"
+#include "util/IntrusiveList.hxx"
 
-#include <memory>
-#include <set>
-#include <string>
+struct CgroupResourceUsage;
 
-class UnifiedCgroupWatch;
-class LuaAccounting;
+class LuaAccounting final {
+	Lua::State state;
 
-class Instance final {
-	EventLoop event_loop;
+	const Lua::ValuePtr handler;
 
-	bool should_exit = false;
+	class Thread final : public AutoUnlinkIntrusiveListHook, Lua::ResumeListener {
+		/**
+		 * The Lua thread which runs the handler coroutine.
+		 */
+		Lua::CoRunner runner;
 
-	ShutdownListener shutdown_listener;
-	SignalEvent sighup_event;
+	public:
+		explicit Thread(lua_State *L) noexcept
+			:runner(L) {}
 
-	SpawnListener listener;
+		~Thread() noexcept {
+			runner.Cancel();
+		}
 
-	const CgroupState cgroup_state;
+		void Start(const Lua::Value &handler,
+			   const CgroupResourceUsage &usage) noexcept;
 
-	std::unique_ptr<UnifiedCgroupWatch> unified_cgroup_watch;
+		/* virtual methods from class ResumeListener */
+		void OnLuaFinished(lua_State *L) noexcept override;
+		void OnLuaError(lua_State *L,
+				std::exception_ptr e) noexcept override;
+	};
 
-	std::unique_ptr<LuaAccounting> lua_accounting;
-
-	std::set<std::string> cgroup_delete_queue;
-	DeferEvent defer_cgroup_delete;
-
-	NamespaceMap namespaces;
+	IntrusiveList<Thread> threads;
 
 public:
-	Instance();
-	~Instance() noexcept;
+	explicit LuaAccounting(Lua::State &&_state,
+			       Lua::ValuePtr &&_handler) noexcept
+		:state(std::move(_state)),
+		 handler(std::move(_handler)) {}
 
-	EventLoop &GetEventLoop() noexcept {
-		return event_loop;
-	}
+	~LuaAccounting() noexcept;
 
-	void Dispatch() noexcept {
-		event_loop.Dispatch();
-	}
-
-	NamespaceMap &GetNamespaces() noexcept {
-		return namespaces;
-	}
+	void InvokeCgroupReleased(const CgroupResourceUsage &usage);
 
 private:
-	void OnExit() noexcept;
-	void OnReload(int) noexcept;
-
-	void OnSystemdAgentReleased(const char *path) noexcept;
-	void OnDeferredCgroupDelete() noexcept;
+	lua_State *GetState() const noexcept {
+		return handler->GetState();
+	}
 };
-
-#endif

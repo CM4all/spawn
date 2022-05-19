@@ -1,1 +1,2 @@
 usr/sbin
+config/accounting.lua etc/cm4all/spawn

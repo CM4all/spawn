@@ -30,69 +30,65 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef INSTANCE_HXX
-#define INSTANCE_HXX
+#include "LAccounting.hxx"
+#include "CgroupAccounting.hxx"
+#include "lua/Assert.hxx"
+#include "lua/Resume.hxx"
+#include "util/DeleteDisposer.hxx"
+#include "util/PrintException.hxx"
 
-#include "Listener.hxx"
-#include "NamespaceMap.hxx"
-#include "lua/State.hxx"
-#include "lua/ValuePtr.hxx"
-#include "event/Loop.hxx"
-#include "event/ShutdownListener.hxx"
-#include "event/SignalEvent.hxx"
-#include "event/DeferEvent.hxx"
-#include "spawn/CgroupState.hxx"
+using namespace Lua;
 
-#include <memory>
-#include <set>
-#include <string>
+static void
+Push(lua_State *L, const CgroupResourceUsage &usage)
+{
+	const ScopeCheckStack check_stack{L, 1};
 
-class UnifiedCgroupWatch;
-class LuaAccounting;
+	lua_newtable(L);
 
-class Instance final {
-	EventLoop event_loop;
+	// TODO add more fields
 
-	bool should_exit = false;
+	if (usage.have_memory_max_usage)
+		SetField(L, RelativeStackIndex{-1}, "memory_max_usage",
+			 (lua_Integer)usage.memory_max_usage);
+}
 
-	ShutdownListener shutdown_listener;
-	SignalEvent sighup_event;
+void
+LuaAccounting::Thread::Start(const Lua::Value &_handler,
+			     const CgroupResourceUsage &usage) noexcept
+{
+	/* create a new thread for the handler coroutine */
+	const auto L = runner.CreateThread(*this);
 
-	SpawnListener listener;
+	_handler.Push(L);
+	Push(L, usage);
+	Resume(L, 1);
+}
 
-	const CgroupState cgroup_state;
+void
+LuaAccounting::Thread::OnLuaFinished(lua_State *) noexcept
+{
+	delete this;
+}
 
-	std::unique_ptr<UnifiedCgroupWatch> unified_cgroup_watch;
+void
+LuaAccounting::Thread::OnLuaError(lua_State *,
+				  std::exception_ptr e) noexcept
+{
+	// TODO log more metadata?
+	PrintException(e);
+	delete this;
+}
 
-	std::unique_ptr<LuaAccounting> lua_accounting;
+LuaAccounting::~LuaAccounting() noexcept
+{
+	threads.clear_and_dispose(DeleteDisposer{});
+}
 
-	std::set<std::string> cgroup_delete_queue;
-	DeferEvent defer_cgroup_delete;
-
-	NamespaceMap namespaces;
-
-public:
-	Instance();
-	~Instance() noexcept;
-
-	EventLoop &GetEventLoop() noexcept {
-		return event_loop;
-	}
-
-	void Dispatch() noexcept {
-		event_loop.Dispatch();
-	}
-
-	NamespaceMap &GetNamespaces() noexcept {
-		return namespaces;
-	}
-
-private:
-	void OnExit() noexcept;
-	void OnReload(int) noexcept;
-
-	void OnSystemdAgentReleased(const char *path) noexcept;
-	void OnDeferredCgroupDelete() noexcept;
-};
-
-#endif
+void
+LuaAccounting::InvokeCgroupReleased(const CgroupResourceUsage &usage)
+{
+	auto *thread = new Thread(GetState());
+	threads.push_back(*thread);
+	thread->Start(*handler, usage);
+}

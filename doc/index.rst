@@ -21,6 +21,22 @@ The daemon fulfills the following duties:
   :file:`@cm4all-spawn` and allow clients to create namespaces
   (`protocol definition <https://github.com/CM4all/libcommon/blob/master/src/spawn/daemon/Protocol.hxx>`__)
 
+Resource Accounting
+^^^^^^^^^^^^^^^^^^^
+
+.. highlight:: lua
+
+The file :file:`/etc/cm4all/spawn/accounting.lua` is a `Lua
+<http://www.lua.org/>`_ script which is executed at startup.  If it
+defines a function called ``cgroup_released``, then this function will
+be called every time a cgroup is reaped.  The function may for example
+log its resource usage.  Example::
+
+  function cgroup_released(cgroup)
+    print(cgroup.memory_max_usage)
+  end
+
+
 
 Network Namespaces
 ------------------

@@ -30,69 +30,21 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef INSTANCE_HXX
-#define INSTANCE_HXX
+#include "LInit.hxx"
 
-#include "Listener.hxx"
-#include "NamespaceMap.hxx"
-#include "lua/State.hxx"
-#include "lua/ValuePtr.hxx"
-#include "event/Loop.hxx"
-#include "event/ShutdownListener.hxx"
-#include "event/SignalEvent.hxx"
-#include "event/DeferEvent.hxx"
-#include "spawn/CgroupState.hxx"
+extern "C" {
+#include <lauxlib.h>
+#include <lualib.h>
+}
 
-#include <memory>
-#include <set>
-#include <string>
+Lua::State
+LuaInit()
+{
+	Lua::State state{luaL_newstate()};
 
-class UnifiedCgroupWatch;
-class LuaAccounting;
+	luaL_openlibs(state.get());
 
-class Instance final {
-	EventLoop event_loop;
+	// TODO initialize PostgreSQL client
 
-	bool should_exit = false;
-
-	ShutdownListener shutdown_listener;
-	SignalEvent sighup_event;
-
-	SpawnListener listener;
-
-	const CgroupState cgroup_state;
-
-	std::unique_ptr<UnifiedCgroupWatch> unified_cgroup_watch;
-
-	std::unique_ptr<LuaAccounting> lua_accounting;
-
-	std::set<std::string> cgroup_delete_queue;
-	DeferEvent defer_cgroup_delete;
-
-	NamespaceMap namespaces;
-
-public:
-	Instance();
-	~Instance() noexcept;
-
-	EventLoop &GetEventLoop() noexcept {
-		return event_loop;
-	}
-
-	void Dispatch() noexcept {
-		event_loop.Dispatch();
-	}
-
-	NamespaceMap &GetNamespaces() noexcept {
-		return namespaces;
-	}
-
-private:
-	void OnExit() noexcept;
-	void OnReload(int) noexcept;
-
-	void OnSystemdAgentReleased(const char *path) noexcept;
-	void OnDeferredCgroupDelete() noexcept;
-};
-
-#endif
+	return state;
+}

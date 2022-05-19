@@ -34,11 +34,16 @@
 #include "Namespace.hxx"
 #include "Scopes.hxx"
 #include "UnifiedWatch.hxx"
+#include "LAccounting.hxx"
+#include "LInit.hxx"
+#include "lua/RunFile.hxx"
 #include "spawn/Systemd.hxx"
 #include "net/AllocatedSocketAddress.hxx"
 #include "net/UniqueSocketDescriptor.hxx"
 #include "system/Error.hxx"
 #include "util/PrintException.hxx"
+#include "util/RuntimeError.hxx"
+#include "util/ScopeExit.hxx"
 
 #include <signal.h>
 #include <unistd.h>
@@ -91,6 +96,33 @@ CreateUnifiedCgroupWatch(EventLoop &event_loop,
 	return watch;
 }
 
+static Lua::ValuePtr
+GetGlobalFunction(lua_State *L, const char *name)
+{
+	lua_getglobal(L, name);
+	AtScopeExit(L) { lua_pop(L, 1); };
+
+	if (lua_isnil(L, -1))
+		throw FormatRuntimeError("Function '%s' not found", name);
+
+	if (!lua_isfunction(L, -1))
+		throw FormatRuntimeError("'%s' is not a function", name);
+
+	return std::make_shared<Lua::Value>(L, Lua::RelativeStackIndex{-1});
+}
+
+static std::unique_ptr<LuaAccounting>
+LoadLuaAccounting(const char *path)
+{
+	auto state = LuaInit();
+	Lua::RunFile(state.get(), path);
+
+	auto handler = GetGlobalFunction(state.get(), "cgroup_released");
+
+	return std::make_unique<LuaAccounting>(std::move(state),
+					       std::move(handler));
+}
+
 Instance::Instance()
 	:shutdown_listener(event_loop, BIND_THIS_METHOD(OnExit)),
 	 sighup_event(event_loop, SIGHUP, BIND_THIS_METHOD(OnReload)),
@@ -100,6 +132,7 @@ Instance::Instance()
 	 cgroup_state(CgroupState::FromProcess(0, "/.")),
 	 unified_cgroup_watch(CreateUnifiedCgroupWatch(event_loop, cgroup_state,
 						       BIND_THIS_METHOD(OnSystemdAgentReleased))),
+	 lua_accounting(LoadLuaAccounting("/etc/cm4all/spawn/accounting.lua")),
 	 defer_cgroup_delete(event_loop,
 			     BIND_THIS_METHOD(OnDeferredCgroupDelete))
 {
@@ -124,6 +157,8 @@ Instance::OnExit() noexcept
 
 	shutdown_listener.Disable();
 	sighup_event.Disable();
+
+	lua_accounting.reset();
 
 	unified_cgroup_watch.reset();
 }

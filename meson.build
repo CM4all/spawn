@@ -130,6 +130,7 @@ subdir('libcommon/src/net')
 subdir('libcommon/src/event/net')
 subdir('libcommon/src/lib/dbus')
 subdir('libcommon/src/spawn')
+subdir('libcommon/src/lua')
 
 executable('cm4all-spawn',
   'src/Main.cxx',
@@ -142,6 +143,8 @@ executable('cm4all-spawn',
   'src/CgroupAccounting.cxx',
   'src/TreeWatch.cxx',
   'src/UnifiedWatch.cxx',
+  'src/LInit.cxx',
+  'src/LAccounting.cxx',
   include_directories: inc,
   dependencies: [
     odbus_dep,
@@ -150,6 +153,7 @@ executable('cm4all-spawn',
     io_dep,
     event_net_dep,
     spawn_dep,
+    lua_dep,
   ],
   install: true,
   install_dir: 'sbin')
