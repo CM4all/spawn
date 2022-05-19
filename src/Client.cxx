@@ -38,12 +38,11 @@
 #include "net/ReceiveMessage.hxx"
 #include "net/SendMessage.hxx"
 #include "system/Error.hxx"
+#include "util/CRC32.hxx"
 #include "util/Macros.hxx"
 #include "util/PrintException.hxx"
 #include "util/StringView.hxx"
 #include "util/StaticArray.hxx"
-
-#include <boost/crc.hpp>
 
 #include <sched.h> // for CLONE_*
 #include <stdlib.h>
@@ -113,10 +112,9 @@ try {
 	payload = payload.subspan(sizeof(dh));
 
 	{
-		boost::crc_32_type crc;
-		crc.reset();
-		crc.process_bytes(payload.data(), payload.size());
-		if (dh.crc != crc.checksum())
+		CRC32 crc;
+		crc.Update(payload);
+		if (dh.crc != crc.Finish())
 			throw std::runtime_error("Bad CRC");
 	}
 

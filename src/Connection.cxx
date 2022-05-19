@@ -39,12 +39,11 @@
 #include "net/ScmRightsBuilder.hxx"
 #include "system/Error.hxx"
 #include "util/ConstBuffer.hxx"
+#include "util/CRC32.hxx"
 #include "util/StringView.hxx"
 #include "util/PrintException.hxx"
 #include "util/Exception.hxx"
 #include "util/StaticArray.hxx"
-
-#include <boost/crc.hpp>
 
 #include <assert.h>
 #include <sched.h> // for CLONE_*
@@ -121,12 +120,11 @@ SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
 	v[1].iov_base = const_cast<ResponseHeader *>(&rh);
 	v[1].iov_len = sizeof(rh);
 
-	boost::crc_32_type crc;
-	crc.reset();
-	crc.process_bytes(&rh, sizeof(rh));
-	crc.process_bytes(&response_payload.front(), response_payload_size);
+	CRC32 crc;
+	crc.Update(std::as_bytes(std::span{&rh, 1}));
+	crc.Update(std::as_bytes(std::span{response_payload}));
 
-	const DatagramHeader dh{MAGIC, crc.checksum()};
+	const DatagramHeader dh{MAGIC, crc.Finish()};
 	v[0].iov_base = const_cast<DatagramHeader *>(&dh);
 	v[0].iov_len = sizeof(dh);
 
@@ -158,10 +156,9 @@ try {
 	payload = payload.subspan(sizeof(dh));
 
 	{
-		boost::crc_32_type crc;
-		crc.reset();
-		crc.process_bytes(payload.data(), payload.size());
-		if (dh.crc != crc.checksum())
+		CRC32 crc;
+		crc.Update(payload);
+		if (dh.crc != crc.Finish())
 			throw std::runtime_error("Bad CRC");
 	}
 
