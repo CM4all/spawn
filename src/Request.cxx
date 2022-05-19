@@ -52,16 +52,15 @@ CheckNonEmptyASCII(StringView payload)
 }
 
 static std::string
-CheckNonEmptyASCII(ConstBuffer<void> payload)
+CheckNonEmptyASCII(std::span<const std::byte> payload)
 {
-	return CheckNonEmptyASCII(StringView((const char *)payload.data,
-					     payload.size));
+	return CheckNonEmptyASCII(StringView{(const char *)payload.data(), payload.size()});
 }
 
 void
-SpawnRequest::Apply(RequestCommand command, ConstBuffer<void> payload)
+SpawnRequest::Apply(RequestCommand command, std::span<const std::byte> payload)
 {
-	printf("Received cmd=%u size=%zu\n", unsigned(command), payload.size);
+	printf("Received cmd=%u size=%zu\n", unsigned(command), payload.size());
 
 	switch (command) {
 	case RequestCommand::NOP:

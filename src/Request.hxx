@@ -32,12 +32,11 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
-
-#include <stdint.h>
+#include <span>
 
 struct StringView;
-template<typename T> struct ConstBuffer;
 namespace SpawnDaemon { enum class RequestCommand : uint16_t; }
 
 struct SpawnRequest {
@@ -51,5 +50,5 @@ struct SpawnRequest {
 	}
 
 	void Apply(SpawnDaemon::RequestCommand command,
-		   ConstBuffer<void> payload);
+		   std::span<const std::byte> payload);
 };

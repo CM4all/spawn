@@ -37,7 +37,6 @@
 #include "spawn/daemon/Builder.hxx"
 #include "net/SendMessage.hxx"
 #include "net/ScmRightsBuilder.hxx"
-#include "io/UniqueFileDescriptor.hxx"
 #include "system/Error.hxx"
 #include "util/ConstBuffer.hxx"
 #include "util/StringView.hxx"
@@ -143,8 +142,8 @@ SpawnConnection::OnRequest(SpawnRequest &&request)
 }
 
 bool
-SpawnConnection::OnUdpDatagram(ConstBuffer<void> payload,
-			       WritableBuffer<UniqueFileDescriptor>,
+SpawnConnection::OnUdpDatagram(std::span<const std::byte> payload,
+			       std::span<UniqueFileDescriptor>,
 			       SocketAddress, int)
 try {
 	if (payload.empty()) {
@@ -152,17 +151,16 @@ try {
 		return false;
 	}
 
-	const auto &dh = *(const DatagramHeader *)payload.data;
-	if (payload.size < sizeof(dh) || dh.magic != MAGIC)
+	const auto &dh = *(const DatagramHeader *)(const void *)payload.data();
+	if (payload.size() < sizeof(dh) || dh.magic != MAGIC)
 		throw std::runtime_error("Malformed datagram");
 
-	payload.data = &dh + 1;
-	payload.size -= sizeof(dh);
+	payload = payload.subspan(sizeof(dh));
 
 	{
 		boost::crc_32_type crc;
 		crc.reset();
-		crc.process_bytes(payload.data, payload.size);
+		crc.process_bytes(payload.data(), payload.size());
 		if (dh.crc != crc.checksum())
 			throw std::runtime_error("Bad CRC");
 	}
@@ -170,23 +168,21 @@ try {
 	SpawnRequest request;
 
 	while (!payload.empty()) {
-		const auto &rh = *(const RequestHeader *)payload.data;
-		if (payload.size < sizeof(rh))
+		const auto &rh = *(const RequestHeader *)(const void *)payload.data();
+		if (payload.size() < sizeof(rh))
 			throw std::runtime_error("Malformed request in datagram");
 
-		payload.data = &rh + 1;
-		payload.size -= sizeof(rh);
+		payload = payload.subspan(sizeof(rh));
 
 		const size_t payload_size = rh.size;
 		const size_t padded_size = (payload_size + 3) & (~3u);
 
-		if (payload.size < padded_size)
+		if (payload.size() < padded_size)
 			throw std::runtime_error("Malformed request in datagram");
-		payload.size -= padded_size;
 
-		request.Apply(rh.command, {payload.data, payload_size});
+		request.Apply(rh.command, payload.first(payload_size));
 
-		payload.data = (const uint8_t *)payload.data + padded_size;
+		payload = payload.subspan(padded_size);
 	}
 
 	OnRequest(std::move(request));
