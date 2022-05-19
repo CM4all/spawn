@@ -89,7 +89,7 @@ SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
 
 	struct iovec v[3];
 
-	MessageHeader msg = ConstBuffer<struct iovec>(v);
+	MessageHeader msg = std::span<const struct iovec>{v};
 	ScmRightsBuilder<8> srb(msg);
 
 	try {
