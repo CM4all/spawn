@@ -69,11 +69,9 @@ Instance::Instance()
 	:shutdown_listener(event_loop, BIND_THIS_METHOD(OnExit)),
 	 sighup_event(event_loop, SIGHUP, BIND_THIS_METHOD(OnReload)),
 	 listener(event_loop, *this),
-	 cgroup_state(CreateSystemdScope("spawn.scope",
-					 "Process spawner helper daemon",
-					 {},
-					 getpid(), true,
-					 "system-cm4all.slice")),
+	 /* kludge: opening "/." so CgroupState contains file
+	    descriptors to the root cgroup */
+	 cgroup_state(CgroupState::FromProcess(0, "/.")),
 	 defer_cgroup_delete(event_loop,
 			     BIND_THIS_METHOD(OnDeferredCgroupDelete))
 {

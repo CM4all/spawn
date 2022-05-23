@@ -1,6 +1,6 @@
 cm4all-spawn (0.9) unstable; urgency=low
 
-  * 
+  * don't create systemd scope
 
  --   
 
