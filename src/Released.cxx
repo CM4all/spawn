@@ -48,6 +48,8 @@
 #include <errno.h>
 #include <inttypes.h>
 
+using std::string_view_literals::operator""sv;
+
 static const char *
 GetManagedSuffix(const char *path)
 {
@@ -60,6 +62,39 @@ GetManagedSuffix(const char *path)
 	return nullptr;
 }
 
+static FileDescriptor
+GetCgroupControllerMount(const CgroupState &state,
+			 std::string_view controller) noexcept
+{
+	const auto c = state.controllers.find(controller);
+	if (c == state.controllers.end())
+		return FileDescriptor::Undefined();
+
+	const std::string &mount_name = c->second;
+
+	for (const auto &m : state.mounts)
+		if (m.name == mount_name)
+			return m.fd;
+
+	return FileDescriptor::Undefined();
+}
+
+static UniqueFileDescriptor
+OpenCgroupController(const CgroupState &state,
+		     std::string_view controller,
+		     const char *relative_path) noexcept
+{
+	assert(*relative_path == '/');
+	assert(relative_path[1] != 0);
+
+	const auto controller_mount =
+		GetCgroupControllerMount(state, controller);
+	if (!controller_mount.IsDefined())
+		return {};
+
+	return OpenPath(controller_mount, relative_path + 1);
+}
+
 static UniqueFileDescriptor
 OpenCgroupUnifiedFile(FileDescriptor v2_mount,
 		      const char *relative_path, const char *filename)
@@ -69,18 +104,6 @@ OpenCgroupUnifiedFile(FileDescriptor v2_mount,
 		 relative_path + 1, filename);
 
 	return OpenReadOnly(v2_mount, path);
-}
-
-static UniqueFileDescriptor
-OpenCgroupFile(const char *relative_path, const char *controller_name,
-	       const char *filename)
-{
-	char path[4096];
-	snprintf(path, sizeof(path), "/sys/fs/cgroup/%s%s/%s.%s",
-		 controller_name, relative_path,
-		 controller_name, filename);
-
-	return OpenReadOnly(path);
 }
 
 static size_t
@@ -115,6 +138,12 @@ ReadFileUint64(FileDescriptor fd)
 	return value;
 }
 
+static uint64_t
+ReadFileUint64(FileDescriptor directory_fd, const char *filename)
+{
+	return ReadFileUint64(OpenReadOnly(directory_fd, filename));
+}
+
 static std::chrono::duration<double>
 ReadFileNS(FileDescriptor fd)
 {
@@ -122,20 +151,10 @@ ReadFileNS(FileDescriptor fd)
 	return std::chrono::nanoseconds(value);
 }
 
-static uint64_t
-ReadCgroupNumber(const char *relative_path, const char *controller_name,
-		 const char *filename)
-{
-	return ReadFileUint64(OpenCgroupFile(relative_path,
-					     controller_name, filename));
-}
-
 static std::chrono::duration<double>
-ReadCgroupNS(const char *relative_path, const char *controller_name,
-	     const char *filename)
+ReadFileNS(FileDescriptor directory_fd, const char *filename)
 {
-	return ReadFileNS(OpenCgroupFile(relative_path,
-					 controller_name, filename));
+	return ReadFileNS(OpenReadOnly(directory_fd, filename));
 }
 
 struct CpuStat {
@@ -215,24 +234,27 @@ CollectCgroupStats(const char *relative_path, const char *suffix,
 		}
 	}
 
-	if (!have_cpu_stat) {
+	if (auto cpuacct_fd = have_cpu_stat
+	    ? UniqueFileDescriptor{}
+	    : OpenCgroupController(state, "cpuacct"sv, relative_path);
+	    cpuacct_fd.IsDefined()) {
 		try {
 			position += sprintf(buffer + position, " cpuacct.usage=%fs",
-					    ReadCgroupNS(relative_path, "cpuacct", "usage").count());
+					    ReadFileNS(cpuacct_fd, "cpuacct.usage").count());
 		} catch (...) {
 			PrintException(std::current_exception());
 		}
 
 		try {
 			position += sprintf(buffer + position, " cpuacct.usage_user=%fs",
-					    ReadCgroupNS(relative_path, "cpuacct", "usage_user").count());
+					    ReadFileNS(cpuacct_fd, "cpuacct.usage_user").count());
 		} catch (...) {
 			PrintException(std::current_exception());
 		}
 
 		try {
 			position += sprintf(buffer + position, " cpuacct.usage_sys=%fs",
-					    ReadCgroupNS(relative_path, "cpuacct", "usage_sys").count());
+					    ReadFileNS(cpuacct_fd, "cpuacct.usage_sys").count());
 		} catch (...) {
 			PrintException(std::current_exception());
 		}
@@ -240,14 +262,16 @@ CollectCgroupStats(const char *relative_path, const char *suffix,
 
 	/* cgroup2 doesn't have something like
 	   "memory.max_usage_in_bytes" */
-	if (!state.memory_v2) {
+	if (auto memory_fd = state.memory_v2
+	    ? UniqueFileDescriptor{}
+	    : OpenCgroupController(state, "memory"sv, relative_path);
+	    memory_fd.IsDefined()) {
 		try {
 			static constexpr uint64_t MEGA = 1024 * 1024;
 
 			position += sprintf(buffer + position,
 					    " memory=%" PRIu64 "M",
-					    (ReadCgroupNumber(relative_path, "memory",
-							      "max_usage_in_bytes") + MEGA / 2 - 1) / MEGA);
+					    (ReadFileUint64(memory_fd, "memory.max_usage_in_bytes") + MEGA / 2 - 1) / MEGA);
 		} catch (...) {
 			PrintException(std::current_exception());
 		}
