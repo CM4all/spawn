@@ -42,7 +42,6 @@
 #include "util/Macros.hxx"
 #include "util/PrintException.hxx"
 #include "util/StringView.hxx"
-#include "util/StaticArray.hxx"
 
 #include <sched.h> // for CLONE_*
 #include <stdlib.h>

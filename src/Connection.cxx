@@ -43,7 +43,7 @@
 #include "util/StringView.hxx"
 #include "util/PrintException.hxx"
 #include "util/Exception.hxx"
-#include "util/StaticArray.hxx"
+#include "util/StaticVector.hxx"
 
 #include <assert.h>
 #include <sched.h> // for CLONE_*
@@ -83,7 +83,7 @@ SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
 
 	auto &ns = instance.GetNamespaces()[std::move(request.name)];
 
-	StaticArray<uint32_t, 8> response_payload;
+	StaticVector<uint32_t, 8> response_payload;
 	std::forward_list<UniqueFileDescriptor> response_fds;
 
 	struct iovec v[3];
