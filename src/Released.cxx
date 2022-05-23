@@ -200,7 +200,7 @@ CollectCgroupStats(const char *relative_path, const char *suffix,
 
 	bool have_cpu_stat = false;
 
-	if (const auto v2_mount = state.GetUnifiedMount();
+	if (const auto v2_mount = state.GetUnifiedGroupMount();
 	    v2_mount.IsDefined()) {
 		try {
 			const auto cpu_stat = ReadCgroupCpuStat(v2_mount,
