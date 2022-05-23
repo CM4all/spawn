@@ -200,17 +200,8 @@ CollectCgroupStats(const char *relative_path, const char *suffix,
 
 	bool have_cpu_stat = false;
 
-	UniqueFileDescriptor v2_mount;
-	if (const auto v2_mount_path = state.GetUnifiedMount();
-	    !v2_mount_path.empty()) {
-		try {
-			v2_mount = OpenPath(v2_mount_path.c_str());
-		} catch (...) {
-			PrintException(std::current_exception());
-		}
-	}
-
-	if (v2_mount.IsDefined()) {
+	if (const auto v2_mount = state.GetUnifiedMount();
+	    v2_mount.IsDefined()) {
 		try {
 			const auto cpu_stat = ReadCgroupCpuStat(v2_mount,
 								relative_path);

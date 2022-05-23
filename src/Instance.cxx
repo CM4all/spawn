@@ -82,8 +82,8 @@ Instance::Instance()
 	if (!cgroup_state.IsEnabled())
 		throw std::runtime_error("systemd cgroups are not available");
 
-	const auto unified_mount = cgroup_state.GetUnifiedMount();
-	if (!unified_mount.empty()) {
+	if (const auto unified_mount = cgroup_state.GetUnifiedMountPath();
+	    !unified_mount.empty()) {
 		unified_cgroup_watch = std::make_unique<UnifiedCgroupWatch>(event_loop,
 									    unified_mount.c_str(),
 									    BIND_THIS_METHOD(OnSystemdAgentReleased));
