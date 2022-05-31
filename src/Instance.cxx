@@ -65,6 +65,32 @@ CreateBindLocalSocket(const char *path)
 	return s;
 }
 
+static auto
+CreateUnifiedCgroupWatch(EventLoop &event_loop,
+			 const CgroupState &cgroup_state,
+			 auto callback)
+{
+	if (!cgroup_state.IsEnabled())
+		throw std::runtime_error("systemd cgroups are not available");
+
+	const auto unified_mount = cgroup_state.GetUnifiedMountPath();
+	if (unified_mount.empty())
+		throw std::runtime_error("systemd unified cgroup is not available");
+
+	auto watch = std::make_unique<UnifiedCgroupWatch>(event_loop,
+							  unified_mount.c_str(),
+							  callback);
+	for (auto i = managed_scopes; *i != nullptr; ++i) {
+		const char *relative_path = *i;
+		if (*relative_path == '/')
+			++relative_path;
+
+		watch->AddCgroup(relative_path);
+	}
+
+	return watch;
+}
+
 Instance::Instance()
 	:shutdown_listener(event_loop, BIND_THIS_METHOD(OnExit)),
 	 sighup_event(event_loop, SIGHUP, BIND_THIS_METHOD(OnReload)),
@@ -72,29 +98,12 @@ Instance::Instance()
 	 /* kludge: opening "/." so CgroupState contains file
 	    descriptors to the root cgroup */
 	 cgroup_state(CgroupState::FromProcess(0, "/.")),
+	 unified_cgroup_watch(CreateUnifiedCgroupWatch(event_loop, cgroup_state,
+						       BIND_THIS_METHOD(OnSystemdAgentReleased))),
 	 defer_cgroup_delete(event_loop,
 			     BIND_THIS_METHOD(OnDeferredCgroupDelete))
 {
 	listener.Listen(CreateBindLocalSocket("@cm4all-spawn"));
-
-	if (!cgroup_state.IsEnabled())
-		throw std::runtime_error("systemd cgroups are not available");
-
-	if (const auto unified_mount = cgroup_state.GetUnifiedMountPath();
-	    !unified_mount.empty()) {
-		unified_cgroup_watch = std::make_unique<UnifiedCgroupWatch>(event_loop,
-									    unified_mount.c_str(),
-									    BIND_THIS_METHOD(OnSystemdAgentReleased));
-
-		for (auto i = managed_scopes; *i != nullptr; ++i) {
-			const char *relative_path = *i;
-			if (*relative_path == '/')
-				++relative_path;
-
-			unified_cgroup_watch->AddCgroup(relative_path);
-		}
-	} else
-		throw std::runtime_error("systemd unified cgroup is not available");
 
 	shutdown_listener.Enable();
 	sighup_event.Enable();
