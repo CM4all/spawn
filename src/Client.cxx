@@ -41,6 +41,7 @@
 #include "util/CRC32.hxx"
 #include "util/Macros.hxx"
 #include "util/PrintException.hxx"
+#include "util/SpanCast.hxx"
 #include "util/StringView.hxx"
 
 #include <sched.h> // for CLONE_*
@@ -73,10 +74,10 @@ SendMakeNamespaces(SocketDescriptor s, StringView name,
 }
 
 static void
-SetNs(ConstBuffer<uint32_t> nstypes,
+SetNs(std::span<const uint32_t> nstypes,
       std::vector<UniqueFileDescriptor> &&fds)
 {
-	assert(nstypes.size == fds.size());
+	assert(nstypes.size() == fds.size());
 
 	auto i = fds.begin();
 	for (auto nstype : nstypes) {
@@ -137,7 +138,7 @@ try {
 						     response.fds.end()) * sizeof(uint32_t))
 			throw std::runtime_error("Malformed NAMESPACE_HANDLES payload");
 
-		SetNs(ConstBuffer<uint32_t>::FromVoid({payload.data(), rh.size}),
+		SetNs(FromBytesStrict<const uint32_t>(payload),
 		      std::move(response.fds));
 
 		{

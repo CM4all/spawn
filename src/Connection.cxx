@@ -38,7 +38,6 @@
 #include "net/SendMessage.hxx"
 #include "net/ScmRightsBuilder.hxx"
 #include "system/Error.hxx"
-#include "util/ConstBuffer.hxx"
 #include "util/CRC32.hxx"
 #include "util/StringView.hxx"
 #include "util/PrintException.hxx"
