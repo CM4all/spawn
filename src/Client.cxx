@@ -42,7 +42,6 @@
 #include "util/Macros.hxx"
 #include "util/PrintException.hxx"
 #include "util/SpanCast.hxx"
-#include "util/StringView.hxx"
 
 #include <sched.h> // for CLONE_*
 #include <stdlib.h>
@@ -53,14 +52,14 @@
 using namespace SpawnDaemon;
 
 static void
-SendMakeNamespaces(SocketDescriptor s, StringView name,
+SendMakeNamespaces(SocketDescriptor s, std::string_view name,
 		   bool ipc_namespace, bool pid_namespace)
 {
 	DatagramBuilder b;
 
-	const RequestHeader name_header{uint16_t(name.size), RequestCommand::NAME};
+	const RequestHeader name_header{uint16_t(name.size()), RequestCommand::NAME};
 	b.Append(name_header);
-	b.AppendPadded(name.ToVoid());
+	b.AppendPadded(std::span{name});
 
 	static constexpr RequestHeader ipc_namespace_header{0, RequestCommand::IPC_NAMESPACE};
 	if (ipc_namespace)

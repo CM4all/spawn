@@ -38,8 +38,6 @@
 #include <map>
 #include <string>
 
-struct StringView;
-
 class TreeWatch {
 	UniqueFileDescriptor inotify_fd;
 	SocketEvent inotify_event;
