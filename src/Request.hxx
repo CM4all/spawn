@@ -36,7 +36,6 @@
 #include <string>
 #include <span>
 
-struct StringView;
 namespace SpawnDaemon { enum class RequestCommand : uint16_t; }
 
 struct SpawnRequest {

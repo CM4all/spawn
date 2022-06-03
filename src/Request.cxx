@@ -32,14 +32,13 @@
 
 #include "Request.hxx"
 #include "spawn/daemon/Protocol.hxx"
-#include "util/StringView.hxx"
 
 #include <stdexcept>
 
 using namespace SpawnDaemon;
 
 static std::string
-CheckNonEmptyASCII(StringView payload)
+CheckNonEmptyASCII(std::string_view payload)
 {
 	if (payload.empty())
 		throw std::runtime_error("Empty string");
@@ -48,13 +47,13 @@ CheckNonEmptyASCII(StringView payload)
 		if ((signed char)ch < 0x20)
 			throw std::runtime_error("Malformed string");
 
-	return {payload.data, payload.size};
+	return std::string{payload};
 }
 
 static std::string
 CheckNonEmptyASCII(std::span<const std::byte> payload)
 {
-	return CheckNonEmptyASCII(StringView{(const char *)payload.data(), payload.size()});
+	return CheckNonEmptyASCII(std::string_view{(const char *)payload.data(), payload.size()});
 }
 
 void
