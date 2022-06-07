@@ -171,3 +171,4 @@ shared_library('nss_cm4all_logname',
 )
 
 subdir('test')
+subdir('doc')
