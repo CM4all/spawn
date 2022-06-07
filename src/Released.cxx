@@ -115,7 +115,6 @@ Instance::OnSystemdAgentReleased(const char *path) noexcept
 		return;
 
 	CollectCgroupStats(path, suffix, cgroup_state);
-	fflush(stdout);
 
 	/* defer the deletion, because unpopulated children of this
 	   cgroup may still exist; this deferral attempts to get the
