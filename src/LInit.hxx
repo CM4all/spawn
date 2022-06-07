@@ -34,5 +34,7 @@
 
 #include "lua/State.hxx"
 
+class EventLoop;
+
 Lua::State
-LuaInit();
+LuaInit(EventLoop &event_loop);

@@ -130,7 +130,10 @@ subdir('libcommon/src/net')
 subdir('libcommon/src/event/net')
 subdir('libcommon/src/lib/dbus')
 subdir('libcommon/src/spawn')
+subdir('libcommon/src/stock')
+subdir('libcommon/src/pg')
 subdir('libcommon/src/lua')
+subdir('libcommon/src/lua/pg')
 
 executable('cm4all-spawn',
   'src/Main.cxx',
@@ -154,6 +157,8 @@ executable('cm4all-spawn',
     event_net_dep,
     spawn_dep,
     lua_dep,
+    lua_pg_dep,
+    util_dep,
   ],
   install: true,
   install_dir: 'sbin')

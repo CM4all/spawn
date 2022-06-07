@@ -31,6 +31,7 @@
  */
 
 #include "LInit.hxx"
+#include "lua/pg/Init.hxx"
 
 extern "C" {
 #include <lauxlib.h>
@@ -38,13 +39,13 @@ extern "C" {
 }
 
 Lua::State
-LuaInit()
+LuaInit(EventLoop &event_loop)
 {
 	Lua::State state{luaL_newstate()};
 
 	luaL_openlibs(state.get());
 
-	// TODO initialize PostgreSQL client
+	Lua::InitPg(state.get(), event_loop);
 
 	return state;
 }

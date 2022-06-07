@@ -112,9 +112,9 @@ GetGlobalFunction(lua_State *L, const char *name)
 }
 
 static std::unique_ptr<LuaAccounting>
-LoadLuaAccounting(const char *path)
+LoadLuaAccounting(EventLoop &event_loop, const char *path)
 {
-	auto state = LuaInit();
+	auto state = LuaInit(event_loop);
 	Lua::RunFile(state.get(), path);
 
 	auto handler = GetGlobalFunction(state.get(), "cgroup_released");
@@ -132,7 +132,8 @@ Instance::Instance()
 	 cgroup_state(CgroupState::FromProcess(0, "/.")),
 	 unified_cgroup_watch(CreateUnifiedCgroupWatch(event_loop, cgroup_state,
 						       BIND_THIS_METHOD(OnSystemdAgentReleased))),
-	 lua_accounting(LoadLuaAccounting("/etc/cm4all/spawn/accounting.lua")),
+	 lua_accounting(LoadLuaAccounting(event_loop,
+					  "/etc/cm4all/spawn/accounting.lua")),
 	 defer_cgroup_delete(event_loop,
 			     BIND_THIS_METHOD(OnDeferredCgroupDelete))
 {

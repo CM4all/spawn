@@ -36,6 +36,26 @@ log its resource usage.  Example::
     print(cgroup.memory_max_usage)
   end
 
+PostgreSQL Client
+^^^^^^^^^^^^^^^^^
+
+The Lua script can query a PostgreSQL database.  First, a connection
+should be established during initialization::
+
+  db = pg:new('dbname=foo', 'schemaname')
+
+In the handler function, queries can be executed like this (the API is
+similar to `LuaSQL <https://keplerproject.github.io/luasql/>`__)::
+
+  local result = assert(db:execute('SELECT id, name FROM bar'))
+  local row = result:fetch({}, "a")
+  print(row.id, row.name)
+
+Query parameters are passed to `db:execute()` as an array after the
+SQL string::
+
+  local result = assert(
+    db:execute('SELECT name FROM bar WHERE id=$1', {42}))
 
 
 Network Namespaces

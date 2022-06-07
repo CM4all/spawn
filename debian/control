@@ -5,6 +5,7 @@ Maintainer: Max Kellermann <mk@cm4all.com>
 Build-Depends: debhelper (>= 12~),
  meson (>= 0.47),
  libsystemd-dev, libdbus-1-dev,
+ libpq-dev,
  libluajit-5.1-dev,
  python3-sphinx
 Standards-Version: 4.0.0
