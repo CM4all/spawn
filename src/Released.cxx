@@ -56,15 +56,13 @@ GetManagedSuffix(const char *path)
 }
 
 static void
-CollectCgroupStats(const char *relative_path, const char *suffix,
-		   const CgroupState &state)
+CollectCgroupStats(const char *suffix,
+		   const CgroupResourceUsage &u)
 {
 	// TODO: multicast statistics
 
 	char buffer[4096];
 	size_t position = 0;
-
-	const auto u = ReadCgroupResourceUsage(state, relative_path);
 
 	if (u.cpu.user.count() >= 0 || u.cpu.system.count() >= 0) {
 		const auto user = std::max(u.cpu.user.count(), 0.);
@@ -114,7 +112,9 @@ Instance::OnSystemdAgentReleased(const char *path) noexcept
 	if (suffix == nullptr)
 		return;
 
-	CollectCgroupStats(path, suffix, cgroup_state);
+	const auto u = ReadCgroupResourceUsage(cgroup_state, path);
+
+	CollectCgroupStats(suffix, u);
 
 	/* defer the deletion, because unpopulated children of this
 	   cgroup may still exist; this deferral attempts to get the
