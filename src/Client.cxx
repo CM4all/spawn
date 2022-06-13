@@ -110,12 +110,8 @@ try {
 
 	payload = payload.subspan(sizeof(dh));
 
-	{
-		CRC32 crc;
-		crc.Update(payload);
-		if (dh.crc != crc.Finish())
-			throw std::runtime_error("Bad CRC");
-	}
+	if (dh.crc != CRC32(payload))
+		throw std::runtime_error("Bad CRC");
 
 	const auto &rh = *(const ResponseHeader *)(const void *)payload.data();
 	if (payload.size() < sizeof(rh))

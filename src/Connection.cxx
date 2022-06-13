@@ -119,7 +119,7 @@ SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
 	v[1].iov_base = const_cast<ResponseHeader *>(&rh);
 	v[1].iov_len = sizeof(rh);
 
-	CRC32 crc;
+	CRC32State crc;
 	crc.Update(std::as_bytes(std::span{&rh, 1}));
 	crc.Update(std::as_bytes(std::span{response_payload}));
 
@@ -154,12 +154,8 @@ try {
 
 	payload = payload.subspan(sizeof(dh));
 
-	{
-		CRC32 crc;
-		crc.Update(payload);
-		if (dh.crc != crc.Finish())
-			throw std::runtime_error("Bad CRC");
-	}
+	if (dh.crc != CRC32(payload))
+		throw std::runtime_error("Bad CRC");
 
 	SpawnRequest request;
 
