@@ -5,7 +5,7 @@ cm4all-spawn (0.9) unstable; urgency=low
   * pass CPU accounting data to Lua script
   * debian: add missing build-dependency on libseccomp-dev
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Sat, 18 Jun 2022 16:06:39 +0200
 
 cm4all-spawn (0.8) unstable; urgency=low
 
