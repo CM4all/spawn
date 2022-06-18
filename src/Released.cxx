@@ -111,6 +111,7 @@ Instance::OnSystemdAgentReleased(const char *path) noexcept
 	if (suffix == nullptr)
 		return;
 
+	// TODO read resource usage right before the cgroup actually gets deleted
 	const auto u = ReadCgroupResourceUsage(cgroup_state, path);
 
 	CollectCgroupStats(suffix, u);
@@ -122,7 +123,10 @@ Instance::OnSystemdAgentReleased(const char *path) noexcept
 	   cgroup may still exist; this deferral attempts to get the
 	   ordering right */
 	cgroup_delete_queue.emplace(path);
-	defer_cgroup_delete.Schedule();
+
+	/* delay deletion somewhat more so the daemon gets the chance
+	   to read statistics */
+	defer_cgroup_delete.Schedule(std::chrono::milliseconds{50});
 }
 
 void

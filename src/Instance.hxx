@@ -40,7 +40,7 @@
 #include "event/Loop.hxx"
 #include "event/ShutdownListener.hxx"
 #include "event/SignalEvent.hxx"
-#include "event/DeferEvent.hxx"
+#include "event/FineTimerEvent.hxx"
 #include "spawn/CgroupState.hxx"
 
 #include <memory>
@@ -67,7 +67,7 @@ class Instance final {
 	std::unique_ptr<LuaAccounting> lua_accounting;
 
 	std::set<std::string> cgroup_delete_queue;
-	DeferEvent defer_cgroup_delete;
+	FineTimerEvent defer_cgroup_delete;
 
 	NamespaceMap namespaces;
 
