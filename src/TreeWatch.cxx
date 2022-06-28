@@ -92,7 +92,7 @@ TreeWatch::Directory::Open(FileDescriptor parent_fd)
 	fd = OpenPath(parent_fd, name.c_str(), O_DIRECTORY);
 }
 
-int
+inline int
 TreeWatch::Directory::AddWatch(FileDescriptor inotify_fd_)
 {
 	assert(watch_descriptor < 0);
@@ -181,7 +181,7 @@ TreeWatch::AddWatch(Directory &directory)
 	assert(i.second);
 }
 
-void
+inline void
 TreeWatch::RemoveWatch(int wd) noexcept
 {
 	assert(wd >= 0);
@@ -319,7 +319,7 @@ TreeWatch::HandleInotifyEvent(Directory &directory, uint32_t mask,
 	}
 }
 
-void
+inline void
 TreeWatch::HandleInotifyEvent(Directory &directory,
 			      const struct inotify_event &event) noexcept
 {
