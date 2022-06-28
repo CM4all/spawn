@@ -213,8 +213,7 @@ TreeWatch::ScanDirectory(Directory &directory)
 
 			ScanDirectory(child);
 		} catch (const std::system_error &e) {
-			if (e.code().category() == ErrnoCategory() &&
-			    e.code().value() == ENOTDIR)
+			if (IsPathNotFound(e))
 				continue;
 
 			PrintException(std::current_exception());
