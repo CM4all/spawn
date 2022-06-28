@@ -37,6 +37,7 @@
 
 #include <map>
 #include <string>
+#include <string_view>
 
 class TreeWatch {
 	UniqueFileDescriptor inotify_fd;
@@ -49,7 +50,7 @@ class TreeWatch {
 
 		UniqueFileDescriptor fd;
 
-		std::map<std::string, Directory> children;
+		std::map<std::string, Directory, std::less<>> children;
 
 		int watch_descriptor = -1;
 
@@ -60,7 +61,7 @@ class TreeWatch {
 
 		Directory(Root, const char *path);
 
-		Directory(Directory &_parent, const std::string &_name,
+		Directory(Directory &_parent, std::string_view _name,
 			  bool _persist, bool _all);
 
 		std::string GetPath() const noexcept;
@@ -93,7 +94,7 @@ public:
 	void Add(const char *relative_path);
 
 private:
-	Directory &MakeChild(Directory &parent, const std::string &name,
+	Directory &MakeChild(Directory &parent, std::string_view name,
 			     bool persist, bool all);
 
 	void AddWatch(Directory &directory);
@@ -101,14 +102,14 @@ private:
 
 	void ScanDirectory(Directory &directory);
 
-	void HandleNewDirectory(Directory &parent, std::string &&name);
+	void HandleNewDirectory(Directory &parent, std::string_view name);
 
 	void HandleDeletedDirectory(Directory &directory) noexcept;
 	void HandleDeletedDirectory(Directory &parent,
-				    std::string &&name) noexcept;
+				    std::string_view name) noexcept;
 
 	void HandleInotifyEvent(Directory &directory, uint32_t mask,
-				std::string &&name) noexcept;
+				std::string_view name) noexcept;
 	void HandleInotifyEvent(Directory &directory,
 				const struct inotify_event &event) noexcept;
 

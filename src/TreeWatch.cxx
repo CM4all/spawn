@@ -53,7 +53,7 @@ TreeWatch::Directory::Directory(Root, const char *path)
 }
 
 inline
-TreeWatch::Directory::Directory(Directory &_parent, const std::string &_name,
+TreeWatch::Directory::Directory(Directory &_parent, std::string_view _name,
 				bool _persist, bool _all)
 	:parent(&_parent), name(_name),
 	 persist(_persist), all(_all)
@@ -158,7 +158,7 @@ TreeWatch::Add(const char *relative_path)
 }
 
 TreeWatch::Directory &
-TreeWatch::MakeChild(Directory &parent, const std::string &name,
+TreeWatch::MakeChild(Directory &parent, std::string_view name,
 		     bool persist, bool all)
 {
 	return parent.children.emplace(std::piecewise_construct,
@@ -259,14 +259,14 @@ TreeWatch::HandleDeletedDirectory(Directory &directory) noexcept
 }
 
 void
-TreeWatch::HandleNewDirectory(Directory &parent, std::string &&name)
+TreeWatch::HandleNewDirectory(Directory &parent, std::string_view name)
 {
 	assert(parent.IsOpen());
 
 	Directory *child;
 
 	if (parent.all) {
-		child = &MakeChild(parent, std::move(name), false, true);
+		child = &MakeChild(parent, name, false, true);
 	} else {
 		auto i = parent.children.find(name);
 		if (i == parent.children.end())
@@ -288,7 +288,7 @@ TreeWatch::HandleNewDirectory(Directory &parent, std::string &&name)
 
 void
 TreeWatch::HandleDeletedDirectory(Directory &parent,
-				  std::string &&name) noexcept
+				  std::string_view name) noexcept
 {
 	auto i = parent.children.find(name);
 	if (i == parent.children.end())
@@ -304,17 +304,18 @@ TreeWatch::HandleDeletedDirectory(Directory &parent,
 
 inline void
 TreeWatch::HandleInotifyEvent(Directory &directory, uint32_t mask,
-			      std::string &&name) noexcept
+			      std::string_view name) noexcept
 {
 	try {
 		if (mask & (IN_CREATE|IN_MOVED_TO))
-			HandleNewDirectory(directory, std::move(name));
+			HandleNewDirectory(directory, name);
 		else if (mask & (IN_DELETE|IN_MOVED_FROM))
-			HandleDeletedDirectory(directory, std::move(name));
+			HandleDeletedDirectory(directory, name);
 	} catch (...) {
-		fprintf(stderr, "Failed to handle inotify event 0x%x on '%s/%s': ",
+		fprintf(stderr, "Failed to handle inotify event 0x%x on '%s/%.*s': ",
 			unsigned(mask),
-			directory.GetPath().c_str(), name.c_str());
+			directory.GetPath().c_str(),
+			int(name.size()), name.data());
 		PrintException(std::current_exception());
 	}
 }
