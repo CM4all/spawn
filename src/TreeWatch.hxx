@@ -33,15 +33,14 @@
 #pragma once
 
 #include "io/UniqueFileDescriptor.hxx"
-#include "event/SocketEvent.hxx"
+#include "event/InotifyEvent.hxx"
 
 #include <map>
 #include <string>
 #include <string_view>
 
-class TreeWatch {
-	UniqueFileDescriptor inotify_fd;
-	SocketEvent inotify_event;
+class TreeWatch : InotifyHandler {
+	InotifyEvent inotify_event;
 
 	struct Directory {
 		Directory *const parent;
@@ -73,7 +72,7 @@ class TreeWatch {
 
 		void Open(FileDescriptor parent_fd);
 
-		int AddWatch(FileDescriptor inotify_fd);
+		int AddWatch(InotifyEvent &inotify_event);
 	};
 
 	Directory root;
@@ -110,13 +109,16 @@ private:
 
 	void HandleInotifyEvent(Directory &directory, uint32_t mask,
 				std::string_view name) noexcept;
-	void HandleInotifyEvent(Directory &directory,
-				const struct inotify_event &event) noexcept;
-
-	void OnInotifyEvent(unsigned events) noexcept;
+	void HandleInotifyEvent(Directory &directory, uint32_t mask,
+				const char *name) noexcept;
 
 protected:
 	virtual void OnDirectoryCreated(const std::string &relative_path,
 					FileDescriptor directory_fd) noexcept = 0;
 	virtual void OnDirectoryDeleted(const std::string &relative_path) noexcept = 0;
+
+private:
+	/* virtual methods from class InotifyHandler */
+	void OnInotify(int wd, unsigned mask, const char *name) override;
+	void OnInotifyError(std::exception_ptr error) noexcept override;
 };

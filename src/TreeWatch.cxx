@@ -32,10 +32,8 @@
 
 #include "TreeWatch.hxx"
 #include "system/Error.hxx"
-#include "system/LinuxFD.hxx"
 #include "io/DirectoryReader.hxx"
 #include "io/Open.hxx"
-#include "util/BindMethod.hxx"
 #include "util/IterableSplitString.hxx"
 #include "util/PrintException.hxx"
 
@@ -93,30 +91,24 @@ TreeWatch::Directory::Open(FileDescriptor parent_fd)
 }
 
 inline int
-TreeWatch::Directory::AddWatch(FileDescriptor inotify_fd_)
+TreeWatch::Directory::AddWatch(InotifyEvent &ie)
 {
 	assert(watch_descriptor < 0);
 
 	const auto path = GetPath();
-	watch_descriptor = inotify_add_watch(inotify_fd_.Get(), path.c_str(),
-					     IN_DONT_FOLLOW|IN_EXCL_UNLINK|IN_ONLYDIR|
-					     IN_CREATE|IN_DELETE|IN_MOVED_FROM|IN_MOVED_TO);
-	if (watch_descriptor < 0)
-		throw FormatErrno("inotify_add_watch('%s') failed",
-				  path.c_str());
+	watch_descriptor =
+		ie.AddWatch(path.c_str(),
+			    IN_DONT_FOLLOW|IN_EXCL_UNLINK|IN_ONLYDIR|
+			    IN_CREATE|IN_DELETE|IN_MOVED_FROM|IN_MOVED_TO);
 
 	return watch_descriptor;
 }
 
 TreeWatch::TreeWatch(EventLoop &event_loop, const char *_base_path)
-	:inotify_fd(CreateInotify()),
-	 inotify_event(event_loop, BIND_THIS_METHOD(OnInotifyEvent),
-		       SocketDescriptor::FromFileDescriptor(inotify_fd)),
+	:inotify_event(event_loop, *this),
 	 root(Directory::Root(), _base_path)
 {
 	AddWatch(root);
-
-	inotify_event.ScheduleRead();
 }
 
 void
@@ -176,7 +168,7 @@ TreeWatch::AddWatch(Directory &directory)
 	assert(directory.IsOpen());
 
 	[[maybe_unused]] auto i =
-		watch_descriptor_map.emplace(directory.AddWatch(inotify_fd),
+		watch_descriptor_map.emplace(directory.AddWatch(inotify_event),
 					     &directory);
 	assert(i.second);
 }
@@ -190,7 +182,7 @@ TreeWatch::RemoveWatch(int wd) noexcept
 	assert(i != watch_descriptor_map.end());
 	watch_descriptor_map.erase(i);
 
-	inotify_rm_watch(inotify_fd.Get(), wd);
+	inotify_event.RemoveWatch(wd);
 }
 
 void
@@ -322,47 +314,27 @@ TreeWatch::HandleInotifyEvent(Directory &directory, uint32_t mask,
 
 inline void
 TreeWatch::HandleInotifyEvent(Directory &directory,
-			      const struct inotify_event &event) noexcept
+			      unsigned mask, const char *name) noexcept
 {
-	if ((event.mask & (IN_ISDIR|IN_IGNORED)) != IN_ISDIR)
+	if ((mask & (IN_ISDIR|IN_IGNORED)) != IN_ISDIR)
 		return;
 
-	if (event.len == 0 || event.name[event.len - 1] != 0)
+	if (name == nullptr)
 		return;
 
-	HandleInotifyEvent(directory, event.mask, event.name);
+	HandleInotifyEvent(directory, mask, std::string_view{name});
 }
 
 void
-TreeWatch::OnInotifyEvent(unsigned) noexcept
+TreeWatch::OnInotify(int wd, unsigned mask, const char *name)
 {
-	uint8_t buffer[1024];
-	ssize_t nbytes = inotify_fd.Read(buffer, sizeof(buffer));
-	if (nbytes < 0) {
-		if (errno == EAGAIN)
-			return;
+	if (auto i = watch_descriptor_map.find(wd);
+	    i != watch_descriptor_map.end())
+		HandleInotifyEvent(*i->second, mask, name);
+}
 
-		perror("Reading from inotify failed");
-		inotify_event.Cancel();
-		return;
-	}
-
-	if (nbytes == 0) {
-		fprintf(stderr, "EOF from inotify\n");
-		inotify_event.Cancel();
-		return;
-	}
-
-	const uint8_t *const end = buffer + nbytes;
-	const uint8_t *p = buffer;
-	const struct inotify_event *event;
-
-	while (p + sizeof(*event) <= end) {
-		event = (const struct inotify_event *)(const void *)p;
-		auto i = watch_descriptor_map.find(event->wd);
-		if (i != watch_descriptor_map.end())
-			HandleInotifyEvent(*i->second, *event);
-
-		p = (const uint8_t *)(event + 1) + event->len;
-	}
+void
+TreeWatch::OnInotifyError(std::exception_ptr error) noexcept
+{
+	PrintException(error);
 }
