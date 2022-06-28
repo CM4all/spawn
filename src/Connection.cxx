@@ -39,9 +39,9 @@
 #include "net/ScmRightsBuilder.hxx"
 #include "system/Error.hxx"
 #include "util/CRC32.hxx"
-#include "util/StringView.hxx"
 #include "util/PrintException.hxx"
 #include "util/Exception.hxx"
+#include "util/SpanCast.hxx"
 #include "util/StaticVector.hxx"
 
 #include <assert.h>
@@ -56,13 +56,13 @@ SpawnConnection::SpawnConnection(Instance &_instance,
 	 listener(instance.GetEventLoop(), std::move(_fd), *this) {}
 
 void
-SpawnConnection::SendError(StringView msg)
+SpawnConnection::SendError(std::string_view msg)
 {
 	DatagramBuilder b;
 
-	const ResponseHeader rh{uint16_t(msg.size), ResponseCommand::ERROR};
+	const ResponseHeader rh{uint16_t(msg.size()), ResponseCommand::ERROR};
 	b.Append(rh);
-	b.AppendPadded(msg.ToVoid());
+	b.AppendPadded(AsBytes(msg));
 
 	SendMessage(listener.GetSocket(), b.Finish(),
 		    MSG_DONTWAIT|MSG_NOSIGNAL);
@@ -102,8 +102,7 @@ SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
 		}
 	} catch (...) {
 		PrintException(std::current_exception());
-		const auto error = GetFullMessage(std::current_exception());
-		SendError({error.data(), error.size()});
+		SendError(GetFullMessage(std::current_exception()));
 		return;
 	}
 

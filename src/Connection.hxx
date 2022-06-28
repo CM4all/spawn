@@ -36,9 +36,10 @@
 #include "event/net/UdpHandler.hxx"
 #include "util/IntrusiveList.hxx"
 
+#include <string_view>
+
 #include <sys/socket.h>
 
-struct StringView;
 class Instance;
 class UniqueSocketDescriptor;
 struct SpawnRequest;
@@ -56,7 +57,7 @@ public:
 			UniqueSocketDescriptor &&_fd, SocketAddress address);
 
 private:
-	void SendError(StringView msg);
+	void SendError(std::string_view msg);
 
 	void OnMakeNamespaces(SpawnRequest &&request);
 	void OnRequest(SpawnRequest &&request);
