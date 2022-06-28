@@ -32,6 +32,7 @@
 
 #include "Request.hxx"
 #include "spawn/daemon/Protocol.hxx"
+#include "util/SpanCast.hxx"
 
 #include <stdexcept>
 
@@ -53,7 +54,7 @@ CheckNonEmptyASCII(std::string_view payload)
 static std::string
 CheckNonEmptyASCII(std::span<const std::byte> payload)
 {
-	return CheckNonEmptyASCII(std::string_view{(const char *)payload.data(), payload.size()});
+	return CheckNonEmptyASCII(ToStringView(payload));
 }
 
 void
