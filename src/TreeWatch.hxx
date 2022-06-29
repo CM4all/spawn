@@ -63,7 +63,6 @@ class TreeWatch : InotifyHandler {
 		Directory(Directory &_parent, std::string_view _name,
 			  bool _persist, bool _all);
 
-		std::string GetPath() const noexcept;
 		std::string GetRelativePath() const noexcept;
 
 		bool IsOpen() const noexcept {
@@ -84,10 +83,6 @@ public:
 
 	auto &GetEventLoop() const noexcept {
 		return inotify_event.GetEventLoop();
-	}
-
-	const std::string &GetBasePath() noexcept {
-		return root.name;
 	}
 
 	void Add(const char *relative_path);

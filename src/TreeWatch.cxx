@@ -45,7 +45,6 @@
 inline
 TreeWatch::Directory::Directory(Root, const char *path)
 	:parent(nullptr),
-	 name(path),
 	 fd(OpenPath(path, O_DIRECTORY)),
 	 persist(true), all(false)
 {
@@ -57,15 +56,6 @@ TreeWatch::Directory::Directory(Directory &_parent, std::string_view _name,
 	:parent(&_parent), name(_name),
 	 persist(_persist), all(_all)
 {
-}
-
-std::string
-TreeWatch::Directory::GetPath() const noexcept
-{
-	if (parent == nullptr)
-		return name;
-
-	return parent->GetPath() + "/" + name;
 }
 
 std::string
@@ -306,7 +296,7 @@ TreeWatch::HandleInotifyEvent(Directory &directory, uint32_t mask,
 	} catch (...) {
 		fprintf(stderr, "Failed to handle inotify event 0x%x on '%s/%.*s': ",
 			unsigned(mask),
-			directory.GetPath().c_str(),
+			directory.GetRelativePath().c_str(),
 			int(name.size()), name.data());
 		PrintException(std::current_exception());
 	}
