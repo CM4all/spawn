@@ -51,7 +51,7 @@ class UnifiedCgroupWatch final : TreeWatch {
 	bool in_add = false;
 
 public:
-	UnifiedCgroupWatch(EventLoop &event_loop, const char *cgroup2_mount,
+	UnifiedCgroupWatch(EventLoop &event_loop, FileDescriptor cgroup2_mount,
 			   Callback _callback);
 	~UnifiedCgroupWatch() noexcept;
 

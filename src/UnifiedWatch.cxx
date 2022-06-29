@@ -97,9 +97,9 @@ UnifiedCgroupWatch::Group::EventCallback(unsigned) noexcept
 }
 
 UnifiedCgroupWatch::UnifiedCgroupWatch(EventLoop &event_loop,
-				       const char *cgroup2_mount,
+				       FileDescriptor cgroup2_mount,
 				       Callback _callback)
-	:TreeWatch(event_loop, FileDescriptor{AT_FDCWD}, cgroup2_mount),
+	:TreeWatch(event_loop, cgroup2_mount, "."),
 	 callback(_callback)
 {
 }
