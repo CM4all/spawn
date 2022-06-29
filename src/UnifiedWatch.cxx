@@ -38,6 +38,7 @@
 #include "util/PrintException.hxx"
 #include "util/ScopeExit.hxx"
 
+#include <fcntl.h> // for AT_FDCWD
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -98,7 +99,7 @@ UnifiedCgroupWatch::Group::EventCallback(unsigned) noexcept
 UnifiedCgroupWatch::UnifiedCgroupWatch(EventLoop &event_loop,
 				       const char *cgroup2_mount,
 				       Callback _callback)
-	:TreeWatch(event_loop, cgroup2_mount),
+	:TreeWatch(event_loop, FileDescriptor{AT_FDCWD}, cgroup2_mount),
 	 callback(_callback)
 {
 }

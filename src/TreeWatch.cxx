@@ -43,9 +43,10 @@
 #include <sys/inotify.h>
 
 inline
-TreeWatch::Directory::Directory(Root, const char *path)
+TreeWatch::Directory::Directory(Root, FileDescriptor directory_fd,
+				const char *path)
 	:parent(nullptr),
-	 fd(OpenPath(path, O_DIRECTORY)),
+	 fd(OpenPath(directory_fd, path, O_DIRECTORY)),
 	 persist(true), all(false)
 {
 }
@@ -96,9 +97,10 @@ TreeWatch::Directory::AddWatch(InotifyEvent &ie)
 	return watch_descriptor;
 }
 
-TreeWatch::TreeWatch(EventLoop &event_loop, const char *_base_path)
+TreeWatch::TreeWatch(EventLoop &event_loop, FileDescriptor directory_fd,
+		     const char *base_path)
 	:inotify_event(event_loop, *this),
-	 root(Directory::Root(), _base_path)
+	 root(Directory::Root(), directory_fd, base_path)
 {
 	AddWatch(root);
 }

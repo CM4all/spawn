@@ -35,13 +35,13 @@
 #include "util/ConstBuffer.hxx"
 #include "util/PrintException.hxx"
 
+#include <fcntl.h> // for AT_FDCWD
 #include <stdlib.h>
 
 class MyTreeWatch final : public TreeWatch {
 public:
 	MyTreeWatch(EventLoop &event_loop, const char *base_path)
-		:TreeWatch(event_loop, base_path) {}
-
+		:TreeWatch(event_loop, FileDescriptor{AT_FDCWD}, base_path) {}
 
 protected:
 	void OnDirectoryCreated(const std::string &relative_path,

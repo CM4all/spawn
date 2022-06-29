@@ -58,7 +58,8 @@ class TreeWatch : InotifyHandler {
 
 		struct Root {};
 
-		Directory(Root, const char *path);
+		Directory(Root, FileDescriptor directory_fd,
+			  const char *path);
 
 		Directory(Directory &_parent, std::string_view _name,
 			  bool _persist, bool _all);
@@ -79,7 +80,8 @@ class TreeWatch : InotifyHandler {
 	std::map<int, Directory *> watch_descriptor_map;
 
 public:
-	TreeWatch(EventLoop &event_loop, const char *base_path);
+	TreeWatch(EventLoop &event_loop,
+		  FileDescriptor directory_fd, const char *base_path);
 
 	auto &GetEventLoop() const noexcept {
 		return inotify_event.GetEventLoop();
