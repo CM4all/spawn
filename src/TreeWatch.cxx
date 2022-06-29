@@ -125,8 +125,7 @@ TreeWatch::Add(const char *relative_path)
 		if (name.empty())
 			continue;
 
-		auto &child = MakeChild(*directory, {name.data, name.size},
-					true, false);
+		auto &child = MakeChild(*directory, name, true, false);
 
 		if (!child.IsOpen() && directory->IsOpen()) {
 			try {
