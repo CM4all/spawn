@@ -79,8 +79,8 @@ public:
 		return event_loop;
 	}
 
-	void Dispatch() noexcept {
-		event_loop.Dispatch();
+	void Run() noexcept {
+		event_loop.Run();
 	}
 
 	NamespaceMap &GetNamespaces() noexcept {

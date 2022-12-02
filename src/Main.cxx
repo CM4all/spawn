@@ -49,7 +49,7 @@ Run()
 	sd_notify(0, "READY=1");
 
 	/* main loop */
-	instance.Dispatch();
+	instance.Run();
 }
 
 int

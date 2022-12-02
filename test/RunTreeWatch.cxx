@@ -72,7 +72,7 @@ try {
 	for (const char *relative_path : args)
 		tw.Add(relative_path);
 
-	event_loop.Dispatch();
+	event_loop.Run();
 
 	return EXIT_SUCCESS;
 } catch (const Usage &) {
