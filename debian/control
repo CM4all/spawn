@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Max Kellermann <mk@cm4all.com>
 Build-Depends: debhelper (>= 12~),
  meson (>= 0.47),
+ libfmt-dev (>= 7),
  libsystemd-dev, libdbus-1-dev,
  libseccomp-dev,
  libpq-dev,
