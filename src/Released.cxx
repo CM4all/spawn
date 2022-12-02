@@ -36,6 +36,8 @@
 #include "LAccounting.hxx"
 #include "util/StringCompare.hxx"
 
+#include <fmt/format.h>
+
 #include <fcntl.h> // for AT_REMOVEDIR
 #include <stdio.h>
 #include <unistd.h>
@@ -86,7 +88,8 @@ CollectCgroupStats(const char *suffix,
 	}
 
 	if (position > 0)
-		fprintf(stderr, "%s:%.*s\n", suffix, int(position), buffer);
+		fmt::print(stderr, "{}:{}\n", suffix,
+			   std::string_view{buffer, position});
 }
 
 static void

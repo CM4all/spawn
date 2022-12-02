@@ -35,6 +35,8 @@
 #include "util/ConstBuffer.hxx"
 #include "util/PrintException.hxx"
 
+#include <fmt/format.h>
+
 #include <fcntl.h> // for AT_FDCWD
 #include <stdlib.h>
 
@@ -46,11 +48,11 @@ public:
 protected:
 	void OnDirectoryCreated(const std::string &relative_path,
 				FileDescriptor) noexcept override {
-		printf("+ %s\n", relative_path.c_str());
+		fmt::print("+ {}\n", relative_path);
 	}
 
 	void OnDirectoryDeleted(const std::string &relative_path) noexcept override {
-		printf("- %s\n", relative_path.c_str());
+		fmt::print("- {}\n", relative_path);
 	}
 };
 
@@ -76,7 +78,7 @@ try {
 
 	return EXIT_SUCCESS;
 } catch (const Usage &) {
-	fprintf(stderr, "Usage: %s PATH REL1...\n", argv[0]);
+	fmt::print(stderr, "Usage: {} PATH REL1...\n", argv[0]);
 	return EXIT_FAILURE;
 } catch (...) {
 	PrintException(std::current_exception());

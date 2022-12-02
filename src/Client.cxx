@@ -43,6 +43,8 @@
 #include "util/PrintException.hxx"
 #include "util/SpanCast.hxx"
 
+#include <fmt/format.h>
+
 #include <sched.h> // for CLONE_*
 #include <stdlib.h>
 #include <stdio.h>
@@ -91,7 +93,7 @@ int
 main(int argc, char **argv)
 try {
 	if (argc != 2) {
-		fprintf(stderr, "Usage: %s NAME\n", argv[0]);
+		fmt::print(stderr, "Usage: {} NAME\n", argv[0]);
 		return EXIT_FAILURE;
 	}
 
@@ -124,8 +126,8 @@ try {
 
 	switch (rh.command) {
 	case ResponseCommand::ERROR:
-		fprintf(stderr, "Server error: %.*s\n",
-			int(rh.size), (const char *)payload.data());
+		fmt::print(stderr, "Server error: {}\n",
+			   ToStringView(payload));
 		return EXIT_FAILURE;
 
 	case ResponseCommand::NAMESPACE_HANDLES:

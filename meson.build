@@ -162,6 +162,7 @@ executable('cm4all-spawn',
     lua_dep,
     lua_pg_dep,
     util_dep,
+    fmt_dep,
   ],
   install: true,
   install_dir: 'sbin')
@@ -172,6 +173,7 @@ executable('cm4all-spawn-client',
   dependencies: [
     net_dep,
     spawn_dep,
+    fmt_dep,
   ])
 
 shared_library('nss_cm4all_logname',

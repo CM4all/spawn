@@ -31,6 +31,7 @@
  */
 
 #include "TreeWatch.hxx"
+#include "lib/fmt/ExceptionFormatter.hxx"
 #include "system/Error.hxx"
 #include "io/DirectoryReader.hxx"
 #include "io/Open.hxx"
@@ -296,11 +297,9 @@ TreeWatch::HandleInotifyEvent(Directory &directory, uint32_t mask,
 		else if (mask & (IN_DELETE|IN_MOVED_FROM))
 			HandleDeletedDirectory(directory, name);
 	} catch (...) {
-		fprintf(stderr, "Failed to handle inotify event 0x%x on '%s/%.*s': ",
-			unsigned(mask),
-			directory.GetRelativePath().c_str(),
-			int(name.size()), name.data());
-		PrintException(std::current_exception());
+		fmt::print(stderr, "Failed to handle inotify event {:#x} on '{}/{}': {}\n",
+			   mask, directory.GetRelativePath(), name,
+			   std::current_exception());
 	}
 }
 

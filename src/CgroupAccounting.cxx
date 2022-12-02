@@ -31,6 +31,7 @@
  */
 
 #include "CgroupAccounting.hxx"
+#include "lib/fmt/ToBuffer.hxx"
 #include "spawn/CgroupState.hxx"
 #include "system/Error.hxx"
 #include "io/Open.hxx"
@@ -77,11 +78,10 @@ static UniqueFileDescriptor
 OpenCgroupUnifiedFile(FileDescriptor v2_mount,
 		      const char *relative_path, const char *filename)
 {
-	char path[4096];
-	snprintf(path, sizeof(path), "%s/%s",
-		 relative_path + 1, filename);
+	const auto path = FmtBuffer<4096>("{}/{}",
+					  relative_path + 1, filename);
 
-	return OpenReadOnly(v2_mount, path);
+	return OpenReadOnly(v2_mount, path.c_str());
 }
 
 static size_t

@@ -34,6 +34,8 @@
 #include "spawn/daemon/Protocol.hxx"
 #include "util/SpanCast.hxx"
 
+#include <fmt/format.h>
+
 #include <stdexcept>
 
 using namespace SpawnDaemon;
@@ -60,7 +62,8 @@ CheckNonEmptyASCII(std::span<const std::byte> payload)
 void
 SpawnRequest::Apply(RequestCommand command, std::span<const std::byte> payload)
 {
-	printf("Received cmd=%u size=%zu\n", unsigned(command), payload.size());
+	fmt::print("Received cmd={} size={}\n",
+		   unsigned(command), payload.size());
 
 	switch (command) {
 	case RequestCommand::NOP:
