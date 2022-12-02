@@ -111,6 +111,7 @@ libcommon_enable_net_log = false
 
 subdir('libcommon/src/util')
 subdir('libcommon/src/io')
+subdir('libcommon/src/io/config')
 subdir('libcommon/src/system')
 
 system2 = static_library(
