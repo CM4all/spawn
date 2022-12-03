@@ -12,6 +12,9 @@ debug = get_option('b_ndebug') != 'true'
 
 common_flags = [
   '-D_GNU_SOURCE',
+
+  # disable boost specific code in libcommon
+  '-DNO_BOOST',
 ]
 
 test_common_flags = [
