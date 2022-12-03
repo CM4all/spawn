@@ -42,7 +42,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
-#include <inttypes.h>
 
 using std::string_view_literals::operator""sv;
 
@@ -62,8 +61,7 @@ static void
 CollectCgroupStats(const char *suffix,
 		   const CgroupResourceUsage &u)
 {
-	char buffer[4096];
-	size_t position = 0;
+	char buffer[4096], *p = buffer;
 
 	if (u.cpu.user.count() >= 0 || u.cpu.system.count() >= 0) {
 		const auto user = std::max(u.cpu.user.count(), 0.);
@@ -72,24 +70,21 @@ CollectCgroupStats(const char *suffix,
 			? u.cpu.total.count()
 			: user + system;
 
-		position += sprintf(buffer + position, " cpu=%fs/%fs/%fs",
-				    total, user, system);
+		p = fmt::format_to(p, " cpu={}s/{}s/{}s", total, user, system);
 	} else if (u.cpu.total.count() >= 0) {
-		position += sprintf(buffer + position, " cpu=%fs",
-				    u.cpu.total.count());
+		p = fmt::format_to(p, " cpu={}s", u.cpu.total.count());
 	}
 
 	if (u.have_memory_max_usage) {
 		static constexpr uint64_t MEGA = 1024 * 1024;
 
-		position += sprintf(buffer + position,
-				    " memory=%" PRIu64 "M",
-				    (u.memory_max_usage + MEGA / 2 - 1) / MEGA);
+		p = fmt::format_to(p, " memory={}M",
+				   (u.memory_max_usage + MEGA / 2 - 1) / MEGA);
 	}
 
-	if (position > 0)
+	if (p > buffer)
 		fmt::print(stderr, "{}:{}\n", suffix,
-			   std::string_view{buffer, position});
+			   std::string_view{buffer, p});
 }
 
 static void
@@ -102,8 +97,8 @@ DestroyCgroup(const CgroupState &state, const char *relative_path) noexcept
 		if (unlinkat(mount.fd.Get(), relative_path + 1,
 			     AT_REMOVEDIR) < 0 &&
 		    errno != ENOENT)
-			fprintf(stderr, "Failed to delete '%s': %s\n",
-				relative_path, strerror(errno));
+			fmt::print(stderr, "Failed to delete '{}': {}\n",
+				   relative_path, strerror(errno));
 	}
 }
 
