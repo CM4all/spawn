@@ -1,6 +1,6 @@
 cm4all-spawn (0.10) unstable; urgency=low
 
-  * 
+  * debian: add missing build-dependency on libcap-dev
 
  --   
 

@@ -37,7 +37,6 @@
 #include "LAccounting.hxx"
 #include "LInit.hxx"
 #include "lua/RunFile.hxx"
-#include "spawn/Systemd.hxx"
 #include "net/AllocatedSocketAddress.hxx"
 #include "net/UniqueSocketDescriptor.hxx"
 #include "system/Error.hxx"
