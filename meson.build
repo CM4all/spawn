@@ -111,6 +111,8 @@ libcommon_enable_boost = false
 libcommon_enable_DefaultFifoBuffer = false
 libcommon_enable_spawn_server = false
 libcommon_enable_spawn_local = false
+libcommon_enable_spawn_daemon = true
+libcommon_enable_spawn_init = true
 libcommon_enable_net_log = false
 
 subdir('libcommon/src/util')
