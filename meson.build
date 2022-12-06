@@ -116,6 +116,7 @@ libcommon_enable_spawn_init = true
 libcommon_enable_net_log = false
 
 subdir('libcommon/src/util')
+subdir('libcommon/src/lib/cap')
 subdir('libcommon/src/lib/fmt')
 subdir('libcommon/src/io')
 subdir('libcommon/src/system')
