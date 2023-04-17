@@ -106,7 +106,6 @@ inc = include_directories(
   'libcommon/src',
 )
 
-libcommon_enable_c = false
 libcommon_enable_boost = false
 libcommon_enable_DefaultFifoBuffer = false
 libcommon_enable_spawn_server = false
