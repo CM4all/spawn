@@ -1,6 +1,7 @@
 cm4all-spawn (0.10) unstable; urgency=low
 
-  * fix build without Boost 
+  * drop support for cgroup1
+  * fix build without Boost
   * debian: add missing build-dependency on libcap-dev
 
  --   

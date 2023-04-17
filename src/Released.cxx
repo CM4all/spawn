@@ -65,13 +65,11 @@ DestroyCgroup(const CgroupState &state, const char *relative_path) noexcept
 	assert(*relative_path == '/');
 	assert(relative_path[1] != 0);
 
-	for (const auto &mount : state.mounts) {
-		if (unlinkat(mount.fd.Get(), relative_path + 1,
-			     AT_REMOVEDIR) < 0 &&
-		    errno != ENOENT)
-			fmt::print(stderr, "Failed to delete '{}': {}\n",
-				   relative_path, strerror(errno));
-	}
+	if (unlinkat(state.group_fd.Get(), relative_path + 1,
+		     AT_REMOVEDIR) < 0 &&
+	    errno != ENOENT)
+		fmt::print(stderr, "Failed to delete '{}': {}\n",
+			   relative_path, strerror(errno));
 }
 
 void

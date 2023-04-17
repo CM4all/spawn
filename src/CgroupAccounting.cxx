@@ -7,44 +7,9 @@
 #include "spawn/CgroupState.hxx"
 #include "system/Error.hxx"
 #include "io/Open.hxx"
-#include "io/UniqueFileDescriptor.hxx"
 #include "util/PrintException.hxx"
 
 using std::string_view_literals::operator""sv;
-
-[[gnu::pure]]
-static FileDescriptor
-GetCgroupControllerMount(const CgroupState &state,
-			 std::string_view controller) noexcept
-{
-	const auto c = state.controllers.find(controller);
-	if (c == state.controllers.end())
-		return FileDescriptor::Undefined();
-
-	const std::string &mount_name = c->second;
-
-	for (const auto &m : state.mounts)
-		if (m.name == mount_name)
-			return m.fd;
-
-	return FileDescriptor::Undefined();
-}
-
-static UniqueFileDescriptor
-OpenCgroupController(const CgroupState &state,
-		     std::string_view controller,
-		     const char *relative_path) noexcept
-{
-	assert(*relative_path == '/');
-	assert(relative_path[1] != 0);
-
-	const auto controller_mount =
-		GetCgroupControllerMount(state, controller);
-	if (!controller_mount.IsDefined())
-		return {};
-
-	return OpenPath(controller_mount, relative_path + 1);
-}
 
 static UniqueFileDescriptor
 OpenCgroupUnifiedFile(FileDescriptor v2_mount,
@@ -72,39 +37,6 @@ ReadFileZ(FileDescriptor fd, char *buffer, size_t buffer_size)
 	size_t length = ReadFile(fd, buffer, buffer_size - 1);
 	buffer[length] = 0;
 	return buffer;
-}
-
-static uint64_t
-ReadFileUint64(FileDescriptor fd)
-{
-	char buffer[64];
-	const char *data = ReadFileZ(fd, buffer, sizeof(buffer));
-
-	char *endptr;
-	auto value = strtoull(data, &endptr, 10);
-	if (endptr == data)
-		throw std::runtime_error("Failed to parse number");
-
-	return value;
-}
-
-static uint64_t
-ReadFileUint64(FileDescriptor directory_fd, const char *filename)
-{
-	return ReadFileUint64(OpenReadOnly(directory_fd, filename));
-}
-
-static std::chrono::duration<double>
-ReadFileNS(FileDescriptor fd)
-{
-	const auto value = ReadFileUint64(fd);
-	return std::chrono::nanoseconds(value);
-}
-
-static std::chrono::duration<double>
-ReadFileNS(FileDescriptor directory_fd, const char *filename)
-{
-	return ReadFileNS(OpenReadOnly(directory_fd, filename));
 }
 
 static const char *
@@ -161,54 +93,15 @@ ReadCgroupResourceUsage(const CgroupState &state,
 
 	CgroupResourceUsage result;
 
-	bool have_cpu_stat = false;
-
-	if (const auto v2_mount = state.GetUnifiedGroupMount();
-	    v2_mount.IsDefined()) {
-		try {
-			result.cpu = ReadCgroupCpuStat(v2_mount,
-						       relative_path);
-			have_cpu_stat = true;
-		} catch (...) {
-			PrintException(std::current_exception());
-		}
-	}
-
-	if (auto cpuacct_fd = have_cpu_stat
-	    ? UniqueFileDescriptor{}
-	    : OpenCgroupController(state, "cpuacct"sv, relative_path);
-	    cpuacct_fd.IsDefined()) {
-		try {
-			result.cpu.total = ReadFileNS(cpuacct_fd, "cpuacct.usage");
-		} catch (...) {
-			PrintException(std::current_exception());
-		}
-
-		try {
-			result.cpu.user = ReadFileNS(cpuacct_fd, "cpuacct.usage_user");
-		} catch (...) {
-			PrintException(std::current_exception());
-		}
-
-		try {
-			result.cpu.system = ReadFileNS(cpuacct_fd, "cpuacct.usage_sys");
-		} catch (...) {
-			PrintException(std::current_exception());
-		}
+	try {
+		result.cpu = ReadCgroupCpuStat(state.group_fd,
+					       relative_path);
+	} catch (...) {
+		PrintException(std::current_exception());
 	}
 
 	/* cgroup2 doesn't have something like
 	   "memory.max_usage_in_bytes" */
-	if (auto memory_fd = state.memory_v2
-	    ? UniqueFileDescriptor{}
-	    : OpenCgroupController(state, "memory"sv, relative_path);
-	    memory_fd.IsDefined()) {
-		try {
-			result.memory_max_usage = ReadFileUint64(memory_fd, "memory.max_usage_in_bytes");
-		} catch (...) {
-			PrintException(std::current_exception());
-		}
-	}
 
 	return result;
 }

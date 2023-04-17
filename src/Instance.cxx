@@ -49,12 +49,10 @@ CreateUnifiedCgroupWatch(EventLoop &event_loop,
 	if (!cgroup_state.IsEnabled())
 		throw std::runtime_error("systemd cgroups are not available");
 
-	const auto unified_mount = cgroup_state.GetUnifiedGroupMount();
-	if (!unified_mount.IsDefined())
-		throw std::runtime_error("systemd unified cgroup is not available");
+	assert(cgroup_state.group_fd.IsDefined());
 
 	auto watch = std::make_unique<UnifiedCgroupWatch>(event_loop,
-							  unified_mount,
+							  cgroup_state.group_fd,
 							  callback);
 	for (auto i = managed_scopes; *i != nullptr; ++i) {
 		const char *relative_path = *i;
