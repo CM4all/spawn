@@ -16,6 +16,8 @@
 #include "util/SpanCast.hxx"
 #include "util/StaticVector.hxx"
 
+#include <forward_list>
+
 #include <assert.h>
 #include <sched.h> // for CLONE_*
 
