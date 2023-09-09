@@ -42,9 +42,12 @@ jobs:
             libpq-dev \
             libluajit-5.1-dev
 
+      - name: Configure
+        run: |
+          meson setup \
+            -Ddocumentation=disabled \
+            -Dwrap_mode=nofallback \
+            output
+
       - name: Build
-        uses: BSFishy/meson-build@v1.0.3
-        with:
-          action: build
-          setup-options: -Ddocumentation=disabled
-          meson-version: 0.56.0
+        run: ninja -C output -v
