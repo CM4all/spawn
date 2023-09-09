@@ -34,6 +34,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
+            meson \
             libcap-dev \
             libseccomp-dev \
             libsystemd-dev \
