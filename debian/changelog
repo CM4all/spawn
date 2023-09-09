@@ -1,6 +1,6 @@
 cm4all-spawn (0.11) unstable; urgency=low
 
-  * 
+  * debian: restart after upgrade
 
  --   
 
