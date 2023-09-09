@@ -1,5 +1,6 @@
 cm4all-spawn (0.11) unstable; urgency=low
 
+  * pg: use a single shared PostgreSQL connection
   * debian: restart after upgrade
 
  --   
