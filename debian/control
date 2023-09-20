@@ -3,7 +3,7 @@ Section: non-free/admin
 Priority: optional
 Maintainer: Max Kellermann <mk@cm4all.com>
 Build-Depends: debhelper (>= 12~),
- meson (>= 0.47),
+ meson (>= 0.56),
  libfmt-dev (>= 7),
  libsystemd-dev,
  libcap-dev,
