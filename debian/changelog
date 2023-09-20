@@ -6,7 +6,7 @@ cm4all-spawn (0.11) unstable; urgency=low
   * debian: restart after upgrade
   * debian: remove unnecessary dependency on libdbus
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Wed, 20 Sep 2023 12:08:21 +0200
 
 cm4all-spawn (0.10) unstable; urgency=low
 
