@@ -4,11 +4,18 @@
 
 #pragma once
 
-#include "Listener.hxx"
-#include "NamespaceMap.hxx"
 #include "event/Loop.hxx"
 #include "event/ShutdownListener.hxx"
 #include "event/SignalEvent.hxx"
+#include "event/FineTimerEvent.hxx"
+#include "spawn/CgroupState.hxx"
+
+#include <memory>
+#include <set>
+#include <string>
+
+class UnifiedCgroupWatch;
+class LuaAccounting;
 
 class Instance final {
 	EventLoop event_loop;
@@ -18,9 +25,14 @@ class Instance final {
 	ShutdownListener shutdown_listener;
 	SignalEvent sighup_event;
 
-	SpawnListener listener;
+	const CgroupState cgroup_state;
 
-	NamespaceMap namespaces;
+	std::unique_ptr<UnifiedCgroupWatch> unified_cgroup_watch;
+
+	std::unique_ptr<LuaAccounting> lua_accounting;
+
+	std::set<std::string> cgroup_delete_queue;
+	FineTimerEvent defer_cgroup_delete;
 
 public:
 	Instance();
@@ -34,11 +46,10 @@ public:
 		event_loop.Run();
 	}
 
-	NamespaceMap &GetNamespaces() noexcept {
-		return namespaces;
-	}
-
 private:
 	void OnExit() noexcept;
 	void OnReload(int) noexcept;
+
+	void OnSystemdAgentReleased(const char *path) noexcept;
+	void OnDeferredCgroupDelete() noexcept;
 };

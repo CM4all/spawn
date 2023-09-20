@@ -2,7 +2,7 @@
 // Copyright CM4all GmbH
 // author: Max Kellermann <mk@cm4all.com>
 
-#include "Instance.hxx"
+#include "ReaperInstance.hxx"
 #include "Scopes.hxx"
 #include "CgroupAccounting.hxx"
 #include "LAccounting.hxx"
