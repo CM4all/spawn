@@ -117,6 +117,7 @@ subdir('libcommon/src/util')
 subdir('libcommon/src/lib/cap')
 subdir('libcommon/src/lib/fmt')
 subdir('libcommon/src/io')
+subdir('libcommon/src/io/linux')
 subdir('libcommon/src/system')
 
 system2 = static_library(
