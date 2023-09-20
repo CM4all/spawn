@@ -9,11 +9,11 @@
 #include "LAccounting.hxx"
 #include "LInit.hxx"
 #include "lua/RunFile.hxx"
+#include "lib/fmt/RuntimeError.hxx"
 #include "net/AllocatedSocketAddress.hxx"
 #include "net/UniqueSocketDescriptor.hxx"
 #include "system/Error.hxx"
 #include "util/PrintException.hxx"
-#include "util/RuntimeError.hxx"
 #include "util/ScopeExit.hxx"
 
 #include <signal.h>
@@ -72,10 +72,10 @@ GetGlobalFunction(lua_State *L, const char *name)
 	AtScopeExit(L) { lua_pop(L, 1); };
 
 	if (lua_isnil(L, -1))
-		throw FormatRuntimeError("Function '%s' not found", name);
+		throw FmtRuntimeError("Function '{}' not found", name);
 
 	if (!lua_isfunction(L, -1))
-		throw FormatRuntimeError("'%s' is not a function", name);
+		throw FmtRuntimeError("'{}' is not a function", name);
 
 	return std::make_shared<Lua::Value>(L, Lua::RelativeStackIndex{-1});
 }

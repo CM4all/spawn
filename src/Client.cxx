@@ -5,6 +5,7 @@
 #include "spawn/daemon/Builder.hxx"
 #include "spawn/daemon/Protocol.hxx"
 #include "spawn/daemon/Client.hxx"
+#include "lib/fmt/SystemError.hxx"
 #include "net/UniqueSocketDescriptor.hxx"
 #include "net/AllocatedSocketAddress.hxx"
 #include "net/ReceiveMessage.hxx"
@@ -55,7 +56,7 @@ SetNs(std::span<const uint32_t> nstypes,
 	auto i = fds.begin();
 	for (auto nstype : nstypes) {
 		if (setns(i->Get(), nstype) < 0)
-			throw FormatErrno("setns(0x%x) failed", nstype);
+			throw FmtErrno("setns({:#x}) failed", nstype);
 
 		++i;
 	}
