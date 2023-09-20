@@ -156,6 +156,7 @@ executable('cm4all-spawn',
   'src/LAccounting.cxx',
   include_directories: inc,
   dependencies: [
+    dependency('libsystemd'),
     odbus_dep,
     event_dep,
     system_dep,
