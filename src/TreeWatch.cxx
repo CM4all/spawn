@@ -7,7 +7,7 @@
 #include "system/Error.hxx"
 #include "io/DirectoryReader.hxx"
 #include "io/Open.hxx"
-#include "io/ScopeChdir.hxx"
+#include "io/linux/ProcPath.hxx"
 #include "util/IterableSplitString.hxx"
 #include "util/PrintException.hxx"
 
@@ -60,11 +60,9 @@ TreeWatch::Directory::AddWatch(InotifyEvent &ie)
 {
 	assert(watch_descriptor < 0);
 
-	const ScopeChdir chdir{fd};
-
 	watch_descriptor =
-		ie.AddWatch(".",
-			    IN_DONT_FOLLOW|IN_EXCL_UNLINK|IN_ONLYDIR|
+		ie.AddWatch(ProcFdPath(fd),
+			    IN_EXCL_UNLINK|IN_ONLYDIR|
 			    IN_CREATE|IN_DELETE|IN_MOVED_FROM|IN_MOVED_TO);
 
 	return watch_descriptor;
