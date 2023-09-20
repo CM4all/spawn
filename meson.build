@@ -135,7 +135,6 @@ system_dep = declare_dependency(
 subdir('libcommon/src/event')
 subdir('libcommon/src/net')
 subdir('libcommon/src/event/net')
-subdir('libcommon/src/lib/dbus')
 subdir('libcommon/src/spawn')
 subdir('libcommon/src/pg')
 subdir('libcommon/src/lua')
@@ -157,7 +156,6 @@ executable('cm4all-spawn',
   include_directories: inc,
   dependencies: [
     dependency('libsystemd'),
-    odbus_dep,
     event_dep,
     system_dep,
     io_dep,

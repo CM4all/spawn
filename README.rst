@@ -12,7 +12,6 @@ You need:
 
 - a C++20 compliant compiler (e.g. gcc or clang)
 - `systemd <https://www.freedesktop.org/wiki/Software/systemd/>`__
-- `D-Bus <https://www.freedesktop.org/wiki/Software/dbus/>`__
 - `Meson 0.47 <http://mesonbuild.com/>`__ and `Ninja <https://ninja-build.org/>`__
 
 Run ``meson``::
