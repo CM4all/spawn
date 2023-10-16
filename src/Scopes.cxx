@@ -13,10 +13,5 @@ const char *const managed_scopes[] = {
 	"/system.slice/system-cm4all.slice/workshop-spawn.scope/",
 	"/system.slice/system-cm4all.slice/openssh.scope/",
 
-	/* deprecated (without cm4all.slice) */
-	"/system.slice/cm4all-beng-spawn.scope/",
-	"/system.slice/cm4all-workshop-spawn.scope/",
-	"/system.slice/cm4all-openssh.scope/",
-
 	nullptr,
 };
