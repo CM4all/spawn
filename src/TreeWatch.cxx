@@ -131,22 +131,17 @@ TreeWatch::AddWatch(Directory &directory)
 {
 	assert(directory.IsOpen());
 
-	[[maybe_unused]] auto i =
-		watch_descriptor_map.emplace(directory.AddWatch(inotify_event),
-					     &directory);
-	assert(i.second);
+	directory.AddWatch(inotify_event);
+	watch_descriptor_map.insert(directory);
 }
 
 inline void
-TreeWatch::RemoveWatch(int wd) noexcept
+TreeWatch::RemoveWatch(Directory &directory) noexcept
 {
-	assert(wd >= 0);
+	assert(directory.watch_descriptor >= 0);
 
-	auto i = watch_descriptor_map.find(wd);
-	assert(i != watch_descriptor_map.end());
-	watch_descriptor_map.erase(i);
-
-	inotify_event.RemoveWatch(wd);
+	watch_descriptor_map.erase(watch_descriptor_map.iterator_to(directory));
+	inotify_event.RemoveWatch(std::exchange(directory.watch_descriptor, -1));
 }
 
 void
@@ -196,7 +191,7 @@ TreeWatch::HandleDeletedDirectory(Directory &directory) noexcept
 	directory.fd.Close();
 
 	if (directory.watch_descriptor >= 0)
-		RemoveWatch(std::exchange(directory.watch_descriptor, -1));
+		RemoveWatch(directory);
 
 	for (auto i = directory.children.begin(), end = directory.children.end(); i != end;) {
 		auto &child = i->second;
@@ -291,7 +286,7 @@ TreeWatch::OnInotify(int wd, unsigned mask, const char *name)
 {
 	if (auto i = watch_descriptor_map.find(wd);
 	    i != watch_descriptor_map.end())
-		HandleInotifyEvent(*i->second, mask, name);
+		HandleInotifyEvent(*i, mask, name);
 }
 
 void

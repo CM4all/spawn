@@ -6,6 +6,7 @@
 
 #include "io/UniqueFileDescriptor.hxx"
 #include "event/InotifyEvent.hxx"
+#include "util/IntrusiveHashSet.hxx"
 
 #include <map>
 #include <string>
@@ -14,7 +15,7 @@
 class TreeWatch : InotifyHandler {
 	InotifyEvent inotify_event;
 
-	struct Directory {
+	struct Directory final : IntrusiveHashSetHook<> {
 		Directory *const parent;
 
 		const std::string name;
@@ -45,11 +46,22 @@ class TreeWatch : InotifyHandler {
 		void Open(FileDescriptor parent_fd);
 
 		int AddWatch(InotifyEvent &inotify_event);
+
+		struct GetInotify {
+			constexpr int operator()(const Directory &d) noexcept {
+				return d.watch_descriptor;
+			}
+		};
 	};
 
 	Directory root;
 
-	std::map<int, Directory *> watch_descriptor_map;
+	/**
+	 * Map inotify watch descriptors to #Directory.
+	 */
+	IntrusiveHashSet<Directory, 256,
+			 IntrusiveHashSetOperators<std::hash<int>, std::equal_to<int>,
+						   Directory::GetInotify>> watch_descriptor_map;
 
 public:
 	TreeWatch(EventLoop &event_loop,
@@ -66,7 +78,7 @@ private:
 			     bool persist, bool all) noexcept;
 
 	void AddWatch(Directory &directory);
-	void RemoveWatch(int wd) noexcept;
+	void RemoveWatch(Directory &directory) noexcept;
 
 	void ScanDirectory(Directory &directory);
 
