@@ -25,7 +25,7 @@ class TreeWatch : InotifyHandler {
 
 		int watch_descriptor = -1;
 
-		bool persist;
+		const bool persist;
 		bool all;
 
 		struct Root {};
