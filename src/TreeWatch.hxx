@@ -34,7 +34,7 @@ class TreeWatch : InotifyHandler {
 			  const char *path);
 
 		Directory(Directory &_parent, std::string_view _name,
-			  bool _persist, bool _all);
+			  bool _persist, bool _all) noexcept;
 
 		std::string GetRelativePath() const noexcept;
 
@@ -63,7 +63,7 @@ public:
 
 private:
 	Directory &MakeChild(Directory &parent, std::string_view name,
-			     bool persist, bool all);
+			     bool persist, bool all) noexcept;
 
 	void AddWatch(Directory &directory);
 	void RemoveWatch(int wd) noexcept;

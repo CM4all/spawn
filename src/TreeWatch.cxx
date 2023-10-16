@@ -26,7 +26,7 @@ TreeWatch::Directory::Directory(Root, FileDescriptor directory_fd,
 
 inline
 TreeWatch::Directory::Directory(Directory &_parent, std::string_view _name,
-				bool _persist, bool _all)
+				bool _persist, bool _all) noexcept
 	:parent(&_parent), name(_name),
 	 persist(_persist), all(_all)
 {
@@ -115,7 +115,7 @@ TreeWatch::Add(const char *relative_path)
 
 TreeWatch::Directory &
 TreeWatch::MakeChild(Directory &parent, std::string_view name,
-		     bool persist, bool all)
+		     bool persist, bool all) noexcept
 {
 	return parent.children.emplace(std::piecewise_construct,
 				       std::forward_as_tuple(name),
