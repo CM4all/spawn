@@ -1,5 +1,6 @@
 cm4all-spawn (0.12) unstable; urgency=low
 
+  * watch scope "lukko-spawn.scope"
   * remove obsolete scopes
 
  --   
