@@ -22,9 +22,9 @@ OpenCgroupUnifiedFile(FileDescriptor v2_mount,
 }
 
 static size_t
-ReadFile(FileDescriptor fd, void *buffer, size_t buffer_size)
+ReadFile(FileDescriptor fd, std::span<std::byte> dest)
 {
-	ssize_t nbytes = fd.Read(buffer, buffer_size);
+	ssize_t nbytes = fd.Read(dest);
 	if (nbytes < 0)
 		throw MakeErrno("Failed to read");
 
@@ -34,7 +34,7 @@ ReadFile(FileDescriptor fd, void *buffer, size_t buffer_size)
 static char *
 ReadFileZ(FileDescriptor fd, char *buffer, size_t buffer_size)
 {
-	size_t length = ReadFile(fd, buffer, buffer_size - 1);
+	size_t length = ReadFile(fd, std::as_writable_bytes(std::span{buffer, buffer_size - 1}));
 	buffer[length] = 0;
 	return buffer;
 }
