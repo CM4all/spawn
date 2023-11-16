@@ -12,9 +12,6 @@ debug = get_option('b_ndebug') != 'true'
 
 common_flags = [
   '-D_GNU_SOURCE',
-
-  # disable boost specific code in libcommon
-  '-DNO_BOOST',
 ]
 
 test_common_flags = [
@@ -106,7 +103,6 @@ inc = include_directories(
   'libcommon/src',
 )
 
-libcommon_enable_boost = false
 libcommon_enable_DefaultFifoBuffer = false
 libcommon_enable_spawn_server = false
 libcommon_enable_spawn_local = false
