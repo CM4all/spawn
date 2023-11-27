@@ -8,6 +8,7 @@
 
 #include <systemd/sd-daemon.h>
 
+#include <stdio.h>
 #include <stdlib.h>
 
 static void
@@ -29,6 +30,11 @@ main(int argc, char **argv)
 try {
 	(void)argc;
 	(void)argv;
+
+	/* force line buffering so Lua "print" statements are flushed
+	   even if stdout is a pipe to systemd-journald */
+	setvbuf(stdout, nullptr, _IOLBF, 0);
+	setvbuf(stderr, nullptr, _IOLBF, 0);
 
 	Run();
 
