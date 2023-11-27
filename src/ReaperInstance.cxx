@@ -75,7 +75,7 @@ Instance::Instance()
 	    descriptors to the root cgroup */
 	 cgroup_state(CgroupState::FromProcess(0, "/.")),
 	 unified_cgroup_watch(CreateUnifiedCgroupWatch(event_loop, cgroup_state,
-						       BIND_THIS_METHOD(OnSystemdAgentReleased))),
+						       BIND_THIS_METHOD(OnCgroupEmpty))),
 	 lua_accounting(LoadLuaAccounting(event_loop,
 					  "/etc/cm4all/spawn/accounting.lua")),
 	 defer_cgroup_delete(event_loop,

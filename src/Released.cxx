@@ -73,7 +73,7 @@ DestroyCgroup(const CgroupState &state, const char *relative_path) noexcept
 }
 
 void
-Instance::OnSystemdAgentReleased(const char *path) noexcept
+Instance::OnCgroupEmpty(const char *path) noexcept
 {
 	const char *suffix = GetManagedSuffix(path);
 	if (suffix == nullptr)

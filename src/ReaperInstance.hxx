@@ -50,6 +50,6 @@ private:
 	void OnExit() noexcept;
 	void OnReload(int) noexcept;
 
-	void OnSystemdAgentReleased(const char *path) noexcept;
+	void OnCgroupEmpty(const char *path) noexcept;
 	void OnDeferredCgroupDelete() noexcept;
 };
