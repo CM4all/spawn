@@ -85,7 +85,7 @@ Instance::OnCgroupEmpty(const char *path) noexcept
 	CollectCgroupStats(suffix, u);
 
 	if (lua_accounting)
-		lua_accounting->InvokeCgroupReleased(path, u);
+		lua_accounting->InvokeCgroupReleased(cgroup_state, path, u);
 
 	/* defer the deletion, because unpopulated children of this
 	   cgroup may still exist; this deferral attempts to get the

@@ -134,6 +134,7 @@ subdir('libcommon/src/event/net')
 subdir('libcommon/src/spawn')
 subdir('libcommon/src/pg')
 subdir('libcommon/src/lua')
+subdir('libcommon/src/lua/io')
 subdir('libcommon/src/lua/pg')
 
 executable('cm4all-spawn',
@@ -174,6 +175,7 @@ executable('cm4all-spawn-reaper',
     io_dep,
     spawn_dep,
     lua_dep,
+    lua_io_dep,
     lua_pg_dep,
     util_dep,
     fmt_dep,

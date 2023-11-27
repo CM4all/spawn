@@ -6,19 +6,31 @@
 #include "CgroupAccounting.hxx"
 #include "lua/Assert.hxx"
 #include "lua/Resume.hxx"
+#include "lua/io/XattrTable.hxx"
+#include "spawn/CgroupState.hxx"
+#include "io/Beneath.hxx"
+#include "io/FileAt.hxx"
 #include "util/DeleteDisposer.hxx"
 #include "util/PrintException.hxx"
 
 using namespace Lua;
 
 static void
-Push(lua_State *L, const char *relative_path, const CgroupResourceUsage &usage)
+Push(lua_State *L, const CgroupState &cgroup_state,
+     const char *relative_path, const CgroupResourceUsage &usage)
 {
 	const ScopeCheckStack check_stack{L, 1};
 
 	lua_newtable(L);
 
 	SetField(L, RelativeStackIndex{-1}, "cgroup", relative_path);
+
+	try {
+		auto fd = OpenReadOnlyBeneath({cgroup_state.group_fd, relative_path + 1});
+		NewXattrTable(L, std::move(fd));
+		lua_setfield(L, -2, "cgroup_xattr");
+	} catch (...) {
+	}
 
 	// TODO add more fields
 
@@ -29,6 +41,7 @@ Push(lua_State *L, const char *relative_path, const CgroupResourceUsage &usage)
 
 void
 LuaAccounting::Thread::Start(const Lua::Value &_handler,
+			     const CgroupState &cgroup_state,
 			     const char *relative_path,
 			     const CgroupResourceUsage &usage) noexcept
 {
@@ -36,7 +49,7 @@ LuaAccounting::Thread::Start(const Lua::Value &_handler,
 	const auto L = runner.CreateThread(*this);
 
 	_handler.Push(L);
-	Push(L, relative_path, usage);
+	Push(L, cgroup_state, relative_path, usage);
 	Resume(L, 1);
 }
 
@@ -61,10 +74,11 @@ LuaAccounting::~LuaAccounting() noexcept
 }
 
 void
-LuaAccounting::InvokeCgroupReleased(const char *relative_path,
+LuaAccounting::InvokeCgroupReleased(const CgroupState &cgroup_state,
+				    const char *relative_path,
 				    const CgroupResourceUsage &usage)
 {
 	auto *thread = new Thread(GetState());
 	threads.push_back(*thread);
-	thread->Start(*handler, relative_path, usage);
+	thread->Start(*handler, cgroup_state, relative_path, usage);
 }

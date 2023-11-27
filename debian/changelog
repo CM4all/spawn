@@ -1,7 +1,7 @@
 cm4all-spawn (0.13) unstable; urgency=low
 
   * reaper: flush "print" statements immediately
-  * reaper: add Lua field `cgroup`
+  * reaper: add Lua fields `cgroup`, `cgroup_xattr`
 
  --   
 

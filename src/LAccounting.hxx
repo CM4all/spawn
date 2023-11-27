@@ -10,6 +10,7 @@
 #include "lua/CoRunner.hxx"
 #include "util/IntrusiveList.hxx"
 
+struct CgroupState;
 struct CgroupResourceUsage;
 
 class LuaAccounting final {
@@ -32,6 +33,7 @@ class LuaAccounting final {
 		}
 
 		void Start(const Lua::Value &handler,
+			   const CgroupState &cgroup_state,
 			   const char *relative_path,
 			   const CgroupResourceUsage &usage) noexcept;
 
@@ -51,7 +53,8 @@ public:
 
 	~LuaAccounting() noexcept;
 
-	void InvokeCgroupReleased(const char *relative_path,
+	void InvokeCgroupReleased(const CgroupState &cgroup_state,
+				  const char *relative_path,
 				  const CgroupResourceUsage &usage);
 
 private:
