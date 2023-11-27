@@ -12,11 +12,13 @@
 using namespace Lua;
 
 static void
-Push(lua_State *L, const CgroupResourceUsage &usage)
+Push(lua_State *L, const char *relative_path, const CgroupResourceUsage &usage)
 {
 	const ScopeCheckStack check_stack{L, 1};
 
 	lua_newtable(L);
+
+	SetField(L, RelativeStackIndex{-1}, "cgroup", relative_path);
 
 	// TODO add more fields
 
@@ -27,13 +29,14 @@ Push(lua_State *L, const CgroupResourceUsage &usage)
 
 void
 LuaAccounting::Thread::Start(const Lua::Value &_handler,
+			     const char *relative_path,
 			     const CgroupResourceUsage &usage) noexcept
 {
 	/* create a new thread for the handler coroutine */
 	const auto L = runner.CreateThread(*this);
 
 	_handler.Push(L);
-	Push(L, usage);
+	Push(L, relative_path, usage);
 	Resume(L, 1);
 }
 
@@ -58,9 +61,10 @@ LuaAccounting::~LuaAccounting() noexcept
 }
 
 void
-LuaAccounting::InvokeCgroupReleased(const CgroupResourceUsage &usage)
+LuaAccounting::InvokeCgroupReleased(const char *relative_path,
+				    const CgroupResourceUsage &usage)
 {
 	auto *thread = new Thread(GetState());
 	threads.push_back(*thread);
-	thread->Start(*handler, usage);
+	thread->Start(*handler, relative_path, usage);
 }

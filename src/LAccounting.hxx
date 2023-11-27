@@ -32,6 +32,7 @@ class LuaAccounting final {
 		}
 
 		void Start(const Lua::Value &handler,
+			   const char *relative_path,
 			   const CgroupResourceUsage &usage) noexcept;
 
 		/* virtual methods from class ResumeListener */
@@ -50,7 +51,8 @@ public:
 
 	~LuaAccounting() noexcept;
 
-	void InvokeCgroupReleased(const CgroupResourceUsage &usage);
+	void InvokeCgroupReleased(const char *relative_path,
+				  const CgroupResourceUsage &usage);
 
 private:
 	lua_State *GetState() const noexcept {
