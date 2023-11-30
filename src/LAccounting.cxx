@@ -16,6 +16,12 @@
 using namespace Lua;
 
 static void
+Push(lua_State *L, CgroupCpuStat::Duration d)
+{
+	Push(L, std::chrono::duration_cast<std::chrono::duration<double>>(d).count());
+}
+
+static void
 Push(lua_State *L, const FileDescriptor &root_cgroup,
      const char *relative_path, const CgroupResourceUsage &usage)
 {
@@ -32,7 +38,14 @@ Push(lua_State *L, const FileDescriptor &root_cgroup,
 	} catch (...) {
 	}
 
-	// TODO add more fields
+	if (usage.cpu.total.count() >= 0)
+		SetField(L, RelativeStackIndex{-1}, "cpu_total", usage.cpu.total);
+
+	if (usage.cpu.user.count() >= 0)
+		SetField(L, RelativeStackIndex{-1}, "cpu_user", usage.cpu.user);
+
+	if (usage.cpu.system.count() >= 0)
+		SetField(L, RelativeStackIndex{-1}, "cpu_syste", usage.cpu.system);
 
 	if (usage.have_memory_max_usage)
 		SetField(L, RelativeStackIndex{-1}, "memory_max_usage",
