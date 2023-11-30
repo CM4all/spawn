@@ -80,7 +80,7 @@ Instance::OnCgroupEmpty(const char *path) noexcept
 		return;
 
 	UniqueFileDescriptor cgroup_fd;
-	cgroup_fd.Open(root_cgroup, path + 1, O_DIRECTORY|O_PATH);
+	cgroup_fd.Open(root_cgroup, path + 1, O_DIRECTORY|O_RDONLY);
 
 	// TODO read resource usage right before the cgroup actually gets deleted
 	const auto u = cgroup_fd.IsDefined()
@@ -90,7 +90,7 @@ Instance::OnCgroupEmpty(const char *path) noexcept
 	CollectCgroupStats(suffix, u);
 
 	if (lua_accounting)
-		lua_accounting->InvokeCgroupReleased(root_cgroup, path, u);
+		lua_accounting->InvokeCgroupReleased(std::move(cgroup_fd), path, u);
 
 	/* defer the deletion, because unpopulated children of this
 	   cgroup may still exist; this deferral attempts to get the

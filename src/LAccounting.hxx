@@ -10,7 +10,7 @@
 #include "lua/CoRunner.hxx"
 #include "util/IntrusiveList.hxx"
 
-class FileDescriptor;
+class UniqueFileDescriptor;
 struct CgroupResourceUsage;
 
 class LuaAccounting final {
@@ -33,7 +33,7 @@ class LuaAccounting final {
 		}
 
 		void Start(const Lua::Value &handler,
-			   FileDescriptor root_cgroup,
+			   UniqueFileDescriptor &&cgroup_fd,
 			   const char *relative_path,
 			   const CgroupResourceUsage &usage) noexcept;
 
@@ -53,7 +53,7 @@ public:
 
 	~LuaAccounting() noexcept;
 
-	void InvokeCgroupReleased(FileDescriptor root_cgroup,
+	void InvokeCgroupReleased(UniqueFileDescriptor cgroup_fd,
 				  const char *relative_path,
 				  const CgroupResourceUsage &usage);
 

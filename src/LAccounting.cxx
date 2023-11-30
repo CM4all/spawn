@@ -7,7 +7,6 @@
 #include "lua/Assert.hxx"
 #include "lua/Resume.hxx"
 #include "lua/io/XattrTable.hxx"
-#include "io/Beneath.hxx"
 #include "io/FileAt.hxx"
 #include "io/UniqueFileDescriptor.hxx"
 #include "util/DeleteDisposer.hxx"
@@ -22,7 +21,7 @@ Push(lua_State *L, CgroupCpuStat::Duration d)
 }
 
 static void
-Push(lua_State *L, const FileDescriptor &root_cgroup,
+Push(lua_State *L, UniqueFileDescriptor &&cgroup_fd,
      const char *relative_path, const CgroupResourceUsage &usage)
 {
 	const ScopeCheckStack check_stack{L, 1};
@@ -31,11 +30,9 @@ Push(lua_State *L, const FileDescriptor &root_cgroup,
 
 	SetField(L, RelativeStackIndex{-1}, "cgroup", relative_path);
 
-	try {
-		auto fd = OpenReadOnlyBeneath({root_cgroup, relative_path + 1});
-		NewXattrTable(L, std::move(fd));
+	if (cgroup_fd.IsDefined()) {
+		NewXattrTable(L, std::move(cgroup_fd));
 		lua_setfield(L, -2, "cgroup_xattr");
-	} catch (...) {
 	}
 
 	if (usage.cpu.total.count() >= 0)
@@ -52,9 +49,9 @@ Push(lua_State *L, const FileDescriptor &root_cgroup,
 			 (lua_Integer)usage.memory_peak);
 }
 
-void
+inline void
 LuaAccounting::Thread::Start(const Lua::Value &_handler,
-			     const FileDescriptor root_cgroup,
+			     UniqueFileDescriptor &&cgroup_fd,
 			     const char *relative_path,
 			     const CgroupResourceUsage &usage) noexcept
 {
@@ -62,7 +59,7 @@ LuaAccounting::Thread::Start(const Lua::Value &_handler,
 	const auto L = runner.CreateThread(*this);
 
 	_handler.Push(L);
-	Push(L, root_cgroup, relative_path, usage);
+	Push(L, std::move(cgroup_fd), relative_path, usage);
 	Resume(L, 1);
 }
 
@@ -87,11 +84,11 @@ LuaAccounting::~LuaAccounting() noexcept
 }
 
 void
-LuaAccounting::InvokeCgroupReleased(FileDescriptor root_cgroup,
+LuaAccounting::InvokeCgroupReleased(UniqueFileDescriptor cgroup_fd,
 				    const char *relative_path,
 				    const CgroupResourceUsage &usage)
 {
 	auto *thread = new Thread(GetState());
 	threads.push_back(*thread);
-	thread->Start(*handler, root_cgroup, relative_path, usage);
+	thread->Start(*handler, std::move(cgroup_fd), relative_path, usage);
 }
