@@ -79,8 +79,13 @@ Instance::OnCgroupEmpty(const char *path) noexcept
 	if (suffix == nullptr)
 		return;
 
+	UniqueFileDescriptor cgroup_fd;
+	cgroup_fd.Open(root_cgroup, path + 1, O_DIRECTORY|O_PATH);
+
 	// TODO read resource usage right before the cgroup actually gets deleted
-	const auto u = ReadCgroupResourceUsage(root_cgroup, path);
+	const auto u = cgroup_fd.IsDefined()
+		? ReadCgroupResourceUsage(cgroup_fd)
+		: CgroupResourceUsage{};
 
 	CollectCgroupStats(suffix, u);
 

@@ -76,16 +76,11 @@ ReadCgroupCpuStat(FileDescriptor cgroup_fd)
 }
 
 CgroupResourceUsage
-ReadCgroupResourceUsage(FileDescriptor root_cgroup,
-			const char *relative_path) noexcept
+ReadCgroupResourceUsage(FileDescriptor cgroup_fd) noexcept
 {
 	// TODO: blkio
 
 	CgroupResourceUsage result;
-
-	UniqueFileDescriptor cgroup_fd;
-	if (!cgroup_fd.Open(root_cgroup, relative_path + 1, O_DIRECTORY|O_PATH))
-		return result;
 
 	try {
 		result.cpu = ReadCgroupCpuStat(cgroup_fd);

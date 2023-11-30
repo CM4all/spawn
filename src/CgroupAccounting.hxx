@@ -25,5 +25,4 @@ struct CgroupResourceUsage {
 
 [[gnu::pure]]
 CgroupResourceUsage
-ReadCgroupResourceUsage(FileDescriptor root_cgroup,
-			const char *relative_path) noexcept;
+ReadCgroupResourceUsage(FileDescriptor cgroup_fd) noexcept;
