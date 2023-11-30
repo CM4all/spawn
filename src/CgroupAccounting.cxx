@@ -9,17 +9,9 @@
 #include "io/UniqueFileDescriptor.hxx"
 #include "util/PrintException.hxx"
 
+#include <fcntl.h> // for O_*
+
 using std::string_view_literals::operator""sv;
-
-static UniqueFileDescriptor
-OpenCgroupUnifiedFile(FileDescriptor v2_mount,
-		      const char *relative_path, const char *filename)
-{
-	const auto path = FmtBuffer<4096>("{}/{}",
-					  relative_path + 1, filename);
-
-	return OpenReadOnly(v2_mount, path.c_str());
-}
 
 static size_t
 ReadFile(FileDescriptor fd, std::span<std::byte> dest)
@@ -60,12 +52,10 @@ FindLine(const char *data, const char *name)
 }
 
 static CgroupCpuStat
-ReadCgroupCpuStat(FileDescriptor v2_mount, const char *relative_path)
+ReadCgroupCpuStat(FileDescriptor cgroup_fd)
 {
 	char buffer[4096];
-	const char *data = ReadFileZ(OpenCgroupUnifiedFile(v2_mount,
-							   relative_path,
-							   "cpu.stat"),
+	const char *data = ReadFileZ(OpenReadOnly(cgroup_fd, "cpu.stat"),
 				     buffer, sizeof(buffer));
 
 	CgroupCpuStat result;
@@ -93,9 +83,12 @@ ReadCgroupResourceUsage(FileDescriptor root_cgroup,
 
 	CgroupResourceUsage result;
 
+	UniqueFileDescriptor cgroup_fd;
+	if (!cgroup_fd.Open(root_cgroup, relative_path + 1, O_DIRECTORY|O_PATH))
+		return result;
+
 	try {
-		result.cpu = ReadCgroupCpuStat(root_cgroup,
-					       relative_path);
+		result.cpu = ReadCgroupCpuStat(cgroup_fd);
 	} catch (...) {
 		PrintException(std::current_exception());
 	}
