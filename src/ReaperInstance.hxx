@@ -8,7 +8,7 @@
 #include "event/ShutdownListener.hxx"
 #include "event/SignalEvent.hxx"
 #include "event/FineTimerEvent.hxx"
-#include "spawn/CgroupState.hxx"
+#include "io/UniqueFileDescriptor.hxx"
 
 #include <memory>
 #include <set>
@@ -25,7 +25,7 @@ class Instance final {
 	ShutdownListener shutdown_listener;
 	SignalEvent sighup_event;
 
-	const CgroupState cgroup_state;
+	const UniqueFileDescriptor root_cgroup;
 
 	std::unique_ptr<UnifiedCgroupWatch> unified_cgroup_watch;
 

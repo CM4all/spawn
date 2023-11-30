@@ -10,8 +10,7 @@
 #include "LInit.hxx"
 #include "lua/RunFile.hxx"
 #include "lib/fmt/RuntimeError.hxx"
-#include "net/AllocatedSocketAddress.hxx"
-#include "net/UniqueSocketDescriptor.hxx"
+#include "io/Open.hxx"
 #include "util/PrintException.hxx"
 #include "util/ScopeExit.hxx"
 
@@ -19,16 +18,13 @@
 
 static auto
 CreateUnifiedCgroupWatch(EventLoop &event_loop,
-			 const CgroupState &cgroup_state,
+			 const FileDescriptor root_cgroup,
 			 auto callback)
 {
-	if (!cgroup_state.IsEnabled())
-		throw std::runtime_error("systemd cgroups are not available");
-
-	assert(cgroup_state.group_fd.IsDefined());
+	assert(root_cgroup.IsDefined());
 
 	auto watch = std::make_unique<UnifiedCgroupWatch>(event_loop,
-							  cgroup_state.group_fd,
+							  root_cgroup,
 							  callback);
 	for (auto i = managed_scopes; *i != nullptr; ++i) {
 		const char *relative_path = *i;
@@ -71,10 +67,8 @@ LoadLuaAccounting(EventLoop &event_loop, const char *path)
 Instance::Instance()
 	:shutdown_listener(event_loop, BIND_THIS_METHOD(OnExit)),
 	 sighup_event(event_loop, SIGHUP, BIND_THIS_METHOD(OnReload)),
-	 /* kludge: opening "/." so CgroupState contains file
-	    descriptors to the root cgroup */
-	 cgroup_state(CgroupState::FromProcess(0, "/.")),
-	 unified_cgroup_watch(CreateUnifiedCgroupWatch(event_loop, cgroup_state,
+	 root_cgroup(OpenPath("/sys/fs/cgroup")),
+	 unified_cgroup_watch(CreateUnifiedCgroupWatch(event_loop, root_cgroup,
 						       BIND_THIS_METHOD(OnCgroupEmpty))),
 	 lua_accounting(LoadLuaAccounting(event_loop,
 					  "/etc/cm4all/spawn/accounting.lua")),

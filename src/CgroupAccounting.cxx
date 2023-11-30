@@ -4,9 +4,9 @@
 
 #include "CgroupAccounting.hxx"
 #include "lib/fmt/ToBuffer.hxx"
-#include "spawn/CgroupState.hxx"
 #include "system/Error.hxx"
 #include "io/Open.hxx"
+#include "io/UniqueFileDescriptor.hxx"
 #include "util/PrintException.hxx"
 
 using std::string_view_literals::operator""sv;
@@ -86,7 +86,7 @@ ReadCgroupCpuStat(FileDescriptor v2_mount, const char *relative_path)
 }
 
 CgroupResourceUsage
-ReadCgroupResourceUsage(const CgroupState &state,
+ReadCgroupResourceUsage(FileDescriptor root_cgroup,
 			const char *relative_path) noexcept
 {
 	// TODO: blkio
@@ -94,7 +94,7 @@ ReadCgroupResourceUsage(const CgroupState &state,
 	CgroupResourceUsage result;
 
 	try {
-		result.cpu = ReadCgroupCpuStat(state.group_fd,
+		result.cpu = ReadCgroupCpuStat(root_cgroup,
 					       relative_path);
 	} catch (...) {
 		PrintException(std::current_exception());

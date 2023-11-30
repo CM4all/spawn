@@ -60,12 +60,12 @@ CollectCgroupStats(const char *suffix,
 }
 
 static void
-DestroyCgroup(const CgroupState &state, const char *relative_path) noexcept
+DestroyCgroup(const FileDescriptor root_cgroup, const char *relative_path) noexcept
 {
 	assert(*relative_path == '/');
 	assert(relative_path[1] != 0);
 
-	if (unlinkat(state.group_fd.Get(), relative_path + 1,
+	if (unlinkat(root_cgroup.Get(), relative_path + 1,
 		     AT_REMOVEDIR) < 0 &&
 	    errno != ENOENT)
 		fmt::print(stderr, "Failed to delete '{}': {}\n",
@@ -80,12 +80,12 @@ Instance::OnCgroupEmpty(const char *path) noexcept
 		return;
 
 	// TODO read resource usage right before the cgroup actually gets deleted
-	const auto u = ReadCgroupResourceUsage(cgroup_state, path);
+	const auto u = ReadCgroupResourceUsage(root_cgroup, path);
 
 	CollectCgroupStats(suffix, u);
 
 	if (lua_accounting)
-		lua_accounting->InvokeCgroupReleased(cgroup_state, path, u);
+		lua_accounting->InvokeCgroupReleased(root_cgroup, path, u);
 
 	/* defer the deletion, because unpopulated children of this
 	   cgroup may still exist; this deferral attempts to get the
@@ -103,7 +103,7 @@ Instance::OnDeferredCgroupDelete() noexcept
 	/* delete the sorted set in reverse order */
 	for (auto i = cgroup_delete_queue.rbegin();
 	     i != cgroup_delete_queue.rend(); ++i)
-		DestroyCgroup(cgroup_state, i->c_str());
+		DestroyCgroup(root_cgroup, i->c_str());
 
 	cgroup_delete_queue.clear();
 }

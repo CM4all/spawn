@@ -7,7 +7,7 @@
 #include <chrono>
 #include <cstdint>
 
-struct CgroupState;
+class FileDescriptor;
 
 struct CgroupCpuStat {
 	using Duration = std::chrono::duration<double>;
@@ -25,5 +25,5 @@ struct CgroupResourceUsage {
 
 [[gnu::pure]]
 CgroupResourceUsage
-ReadCgroupResourceUsage(const CgroupState &state,
+ReadCgroupResourceUsage(FileDescriptor root_cgroup,
 			const char *relative_path) noexcept;
