@@ -18,9 +18,9 @@ struct CgroupCpuStat {
 struct CgroupResourceUsage {
 	CgroupCpuStat cpu;
 
-	uint64_t memory_max_usage;
+	uint64_t memory_peak;
 
-	bool have_memory_max_usage = false;
+	bool have_memory_peak = false;
 };
 
 [[gnu::pure]]

@@ -47,9 +47,9 @@ Push(lua_State *L, const FileDescriptor &root_cgroup,
 	if (usage.cpu.system.count() >= 0)
 		SetField(L, RelativeStackIndex{-1}, "cpu_syste", usage.cpu.system);
 
-	if (usage.have_memory_max_usage)
-		SetField(L, RelativeStackIndex{-1}, "memory_max_usage",
-			 (lua_Integer)usage.memory_max_usage);
+	if (usage.have_memory_peak)
+		SetField(L, RelativeStackIndex{-1}, "memory_peak",
+			 (lua_Integer)usage.memory_peak);
 }
 
 void

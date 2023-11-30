@@ -33,7 +33,7 @@ be called every time a cgroup is reaped.  The function may for example
 log its resource usage.  Example::
 
   function cgroup_released(cgroup)
-    print(cgroup.memory_max_usage)
+    print(cgroup.memory_peak)
   end
 
 PostgreSQL Client

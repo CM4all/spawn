@@ -93,8 +93,18 @@ ReadCgroupResourceUsage(FileDescriptor root_cgroup,
 		PrintException(std::current_exception());
 	}
 
-	/* cgroup2 doesn't have something like
-	   "memory.max_usage_in_bytes" */
+	if (UniqueFileDescriptor fd; fd.OpenReadOnly(cgroup_fd, "memory.peak")) {
+		char buffer[64];
+		ssize_t nbytes = fd.Read(std::as_writable_bytes(std::span{buffer}));
+		if (nbytes > 0 && static_cast<std::size_t>(nbytes) < sizeof(buffer)) {
+			buffer[nbytes] = 0;
+
+			char *endptr;
+			result.memory_peak = strtoull(buffer, &endptr, 10);
+			if (endptr > buffer)
+				result.have_memory_peak = true;
+		}
+	}
 
 	return result;
 }
