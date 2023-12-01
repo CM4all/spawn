@@ -9,6 +9,8 @@ Restart=on-failure
 
 Slice=system-cm4all.slice
 
+User=cm4all-spawn-reaper
+
 # This allows the kernel to merge CPU wakeups, the default of 50ns is
 # too fine.
 TimerSlackNSec=100ms
