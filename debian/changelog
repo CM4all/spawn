@@ -7,7 +7,7 @@ cm4all-spawn (0.13) unstable; urgency=low
   * reaper: run as unprivileged user
   * doc: fix empty package
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Fri, 01 Dec 2023 17:57:15 +0100
 
 cm4all-spawn (0.12) unstable; urgency=low
 
