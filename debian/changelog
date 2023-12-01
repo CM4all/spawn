@@ -5,6 +5,7 @@ cm4all-spawn (0.13) unstable; urgency=low
   * reaper: expose CPU usage to Lua
   * reaper: support cgroup2 "memory.peak"
   * reaper: run as unprivileged user
+  * doc: fix empty package
 
  --   
 
