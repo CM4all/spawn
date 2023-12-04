@@ -7,7 +7,7 @@ cm4all-spawn (0.14) unstable; urgency=low
   * reaper: close file descriptors at end of Lua handler
   * systemd: remove "WantedBy=multi-user.target"
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Mon, 04 Dec 2023 15:17:25 +0100
 
 cm4all-spawn (0.13) unstable; urgency=low
 
