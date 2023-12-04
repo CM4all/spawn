@@ -10,6 +10,8 @@
 #include "event/ShutdownListener.hxx"
 #include "event/SignalEvent.hxx"
 
+#include <forward_list>
+
 class Instance final {
 	EventLoop event_loop;
 
@@ -18,7 +20,7 @@ class Instance final {
 	ShutdownListener shutdown_listener;
 	SignalEvent sighup_event;
 
-	SpawnListener listener;
+	std::forward_list<SpawnListener> listeners;
 
 	NamespaceMap namespaces;
 

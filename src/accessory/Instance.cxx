@@ -9,6 +9,8 @@
 #include "system/Error.hxx"
 #include "util/PrintException.hxx"
 
+#include <systemd/sd-daemon.h>
+
 #include <signal.h>
 
 static UniqueSocketDescriptor
@@ -35,10 +37,18 @@ CreateBindLocalSocket(const char *path)
 
 Instance::Instance()
 	:shutdown_listener(event_loop, BIND_THIS_METHOD(OnExit)),
-	 sighup_event(event_loop, SIGHUP, BIND_THIS_METHOD(OnReload)),
-	 listener(event_loop, *this)
+	 sighup_event(event_loop, SIGHUP, BIND_THIS_METHOD(OnReload))
 {
-	listener.Listen(CreateBindLocalSocket("@cm4all-spawn"));
+	if (int n = sd_listen_fds(true); n > 0) {
+		/* launched with systemd socket activation */
+		for (int i = 0; i < n; ++i) {
+			listeners.emplace_front(event_loop, *this);
+			listeners.front().Listen(UniqueSocketDescriptor{SD_LISTEN_FDS_START + i});
+		}
+	} else {
+		listeners.emplace_front(event_loop, *this);
+		listeners.front().Listen(CreateBindLocalSocket("@cm4all-spawn"));
+	}
 
 	shutdown_listener.Enable();
 	sighup_event.Enable();
@@ -54,8 +64,7 @@ Instance::OnExit() noexcept
 
 	should_exit = true;
 
-	listener.RemoveEvent();
-	listener.CloseAllConnections();
+	listeners.clear ();
 
 	shutdown_listener.Disable();
 	sighup_event.Disable();
