@@ -8,7 +8,7 @@
 #include <string>
 #include <span>
 
-namespace SpawnDaemon { enum class RequestCommand : uint16_t; }
+namespace SpawnAccessory { enum class RequestCommand : uint16_t; }
 
 struct SpawnRequest {
 	std::string name;
@@ -20,6 +20,6 @@ struct SpawnRequest {
 		return ipc_namespace || pid_namespace;
 	}
 
-	void Apply(SpawnDaemon::RequestCommand command,
+	void Apply(SpawnAccessory::RequestCommand command,
 		   std::span<const std::byte> payload);
 };

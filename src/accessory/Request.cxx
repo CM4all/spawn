@@ -3,14 +3,14 @@
 // author: Max Kellermann <mk@cm4all.com>
 
 #include "Request.hxx"
-#include "spawn/daemon/Protocol.hxx"
+#include "spawn/accessory/Protocol.hxx"
 #include "util/SpanCast.hxx"
 
 #include <fmt/format.h>
 
 #include <stdexcept>
 
-using namespace SpawnDaemon;
+using namespace SpawnAccessory;
 
 static std::string
 CheckNonEmptyASCII(std::string_view payload)

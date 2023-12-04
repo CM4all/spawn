@@ -2,9 +2,9 @@
 // Copyright CM4all GmbH
 // author: Max Kellermann <mk@cm4all.com>
 
-#include "spawn/daemon/Builder.hxx"
-#include "spawn/daemon/Protocol.hxx"
-#include "spawn/daemon/Client.hxx"
+#include "spawn/accessory/Builder.hxx"
+#include "spawn/accessory/Protocol.hxx"
+#include "spawn/accessory/Client.hxx"
 #include "lib/fmt/SystemError.hxx"
 #include "net/UniqueSocketDescriptor.hxx"
 #include "net/AllocatedSocketAddress.hxx"
@@ -24,7 +24,7 @@
 #include <sys/wait.h>
 #include <sys/mount.h>
 
-using namespace SpawnDaemon;
+using namespace SpawnAccessory;
 
 static void
 SendMakeNamespaces(SocketDescriptor s, std::string_view name,

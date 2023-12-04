@@ -5,8 +5,8 @@
 #include "Connection.hxx"
 #include "Request.hxx"
 #include "Instance.hxx"
-#include "spawn/daemon/Protocol.hxx"
-#include "spawn/daemon/Builder.hxx"
+#include "spawn/accessory/Protocol.hxx"
+#include "spawn/accessory/Builder.hxx"
 #include "net/SendMessage.hxx"
 #include "net/ScmRightsBuilder.hxx"
 #include "system/Error.hxx"
@@ -21,7 +21,7 @@
 #include <assert.h>
 #include <sched.h> // for CLONE_*
 
-using namespace SpawnDaemon;
+using namespace SpawnAccessory;
 
 SpawnConnection::SpawnConnection(Instance &_instance,
 				 UniqueSocketDescriptor &&_fd,
