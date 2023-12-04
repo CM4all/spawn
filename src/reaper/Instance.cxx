@@ -3,7 +3,6 @@
 // author: Max Kellermann <mk@cm4all.com>
 
 #include "Instance.hxx"
-#include "Namespace.hxx"
 #include "Scopes.hxx"
 #include "UnifiedWatch.hxx"
 #include "LAccounting.hxx"

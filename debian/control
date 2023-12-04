@@ -15,7 +15,7 @@ Standards-Version: 4.0.0
 Vcs-Browser: https://github.com/CM4all/spawn
 Vcs-Git: git://github.com/CM4all/spawn
 
-Package: cm4all-spawn
+Package: cm4all-spawn-accessory
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends},
  systemd-sysv (>= 233~),

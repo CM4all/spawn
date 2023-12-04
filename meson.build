@@ -137,12 +137,12 @@ subdir('libcommon/src/lua')
 subdir('libcommon/src/lua/io')
 subdir('libcommon/src/lua/pg')
 
-executable('cm4all-spawn',
-  'src/Main.cxx',
-  'src/Instance.cxx',
-  'src/Namespace.cxx',
-  'src/Connection.cxx',
-  'src/Request.cxx',
+executable('cm4all-spawn-accessory',
+  'src/accessory/Main.cxx',
+  'src/accessory/Instance.cxx',
+  'src/accessory/Namespace.cxx',
+  'src/accessory/Connection.cxx',
+  'src/accessory/Request.cxx',
   include_directories: inc,
   dependencies: [
     dependency('libsystemd'),

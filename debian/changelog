@@ -1,5 +1,6 @@
 cm4all-spawn (0.14) unstable; urgency=low
 
+  * rename "cm4all-spawn" to "cm4all-spawn-accessory"
   * reaper/systemd: remove "WantedBy=multi-user.target"
 
  --   
