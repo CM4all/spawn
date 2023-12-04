@@ -1,6 +1,3 @@
 [Socket]
 ListenSequentialPacket=@cm4all-spawn
 PassCredentials=true
-
-[Install]
-WantedBy=sockets.target
