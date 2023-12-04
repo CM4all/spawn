@@ -5,6 +5,7 @@
 #include "LAccounting.hxx"
 #include "CgroupAccounting.hxx"
 #include "lua/Assert.hxx"
+#include "lua/AutoClose.hxx"
 #include "lua/CoRunner.hxx"
 #include "lua/Resume.hxx"
 #include "lua/io/XattrTable.hxx"
@@ -29,6 +30,11 @@ public:
 		:runner(L) {}
 
 	~Thread() noexcept {
+		auto *L = runner.GetMainState();
+		runner.Push(L);
+		AutoClose(L, RelativeStackIndex{-1});
+		lua_pop(L, 1);
+
 		runner.Cancel();
 	}
 
@@ -61,6 +67,7 @@ Push(lua_State *L, UniqueFileDescriptor &&cgroup_fd,
 
 	if (cgroup_fd.IsDefined()) {
 		NewXattrTable(L, std::move(cgroup_fd));
+		AddAutoClose(L, CurrentThread{}, RelativeStackIndex{-1});
 		lua_setfield(L, -2, "cgroup_xattr");
 	}
 

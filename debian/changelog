@@ -4,6 +4,7 @@ cm4all-spawn (0.14) unstable; urgency=low
   * split Debian package
   * accessory: implement systemd socket activation
   * reaper: rename "accounting.lua" to "reaper.lua"
+  * reaper: close file descriptors at end of Lua handler
   * systemd: remove "WantedBy=multi-user.target"
 
  --   
