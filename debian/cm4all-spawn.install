@@ -1,3 +1,0 @@
-usr/sbin
-config/reaper.lua etc/cm4all/spawn
-debian/cm4all-spawn-*.service lib/systemd/system

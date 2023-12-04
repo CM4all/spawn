@@ -20,11 +20,20 @@ Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends},
  systemd-sysv (>= 233~),
  cm4all-slice (>= 0.2)
-Breaks: cm4all-beng-proxy (<< 16.0.1), cm4all-workshop (<< 5.0.8),
- cm4all-thirdparty-openssh-server (<< 8.2p1-1)
+Replaces: cm4all-spawn
 Description: Process spawner helper daemon
  cm4all-spawn is a daemon which provides services to other daemons
  wishing to spawn child processes.
+
+Package: cm4all-spawn-reaper
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends},
+ systemd-sysv (>= 233~),
+ cm4all-slice (>= 0.2)
+Replaces: cm4all-spawn
+Description: cgroup reaper daemon
+ cm4all-spawn-reaper is a daemon which reaps empty cgroups and may
+ optionally collect resource usage statistics.
 
 Package: cm4all-spawn-netns
 Architecture: all
