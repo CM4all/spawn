@@ -5,6 +5,7 @@
 #include "LAccounting.hxx"
 #include "CgroupAccounting.hxx"
 #include "lua/Assert.hxx"
+#include "lua/CoRunner.hxx"
 #include "lua/Resume.hxx"
 #include "lua/io/XattrTable.hxx"
 #include "io/FileAt.hxx"
@@ -13,6 +14,34 @@
 #include "util/PrintException.hxx"
 
 using namespace Lua;
+
+class LuaAccounting::Thread final
+	: public AutoUnlinkIntrusiveListHook,
+		    Lua::ResumeListener
+{
+	/**
+	 * The Lua thread which runs the handler coroutine.
+	 */
+	Lua::CoRunner runner;
+
+public:
+	explicit Thread(lua_State *L) noexcept
+		:runner(L) {}
+
+	~Thread() noexcept {
+		runner.Cancel();
+	}
+
+	void Start(const Lua::Value &handler,
+		   UniqueFileDescriptor &&cgroup_fd,
+		   const char *relative_path,
+		   const CgroupResourceUsage &usage) noexcept;
+
+	/* virtual methods from class ResumeListener */
+	void OnLuaFinished(lua_State *L) noexcept override;
+	void OnLuaError(lua_State *L,
+			std::exception_ptr e) noexcept override;
+};
 
 static void
 Push(lua_State *L, CgroupCpuStat::Duration d)
@@ -77,6 +106,11 @@ LuaAccounting::Thread::OnLuaError(lua_State *,
 	PrintException(e);
 	delete this;
 }
+
+LuaAccounting::LuaAccounting(Lua::State _state,
+			     Lua::ValuePtr _handler) noexcept
+	:state(std::move(_state)),
+	 handler(std::move(_handler)) {}
 
 LuaAccounting::~LuaAccounting() noexcept
 {

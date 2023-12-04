@@ -4,10 +4,8 @@
 
 #pragma once
 
-#include "lua/Resume.hxx"
 #include "lua/State.hxx"
 #include "lua/ValuePtr.hxx"
-#include "lua/CoRunner.hxx"
 #include "util/IntrusiveList.hxx"
 
 class UniqueFileDescriptor;
@@ -18,38 +16,12 @@ class LuaAccounting final {
 
 	const Lua::ValuePtr handler;
 
-	class Thread final : public AutoUnlinkIntrusiveListHook, Lua::ResumeListener {
-		/**
-		 * The Lua thread which runs the handler coroutine.
-		 */
-		Lua::CoRunner runner;
-
-	public:
-		explicit Thread(lua_State *L) noexcept
-			:runner(L) {}
-
-		~Thread() noexcept {
-			runner.Cancel();
-		}
-
-		void Start(const Lua::Value &handler,
-			   UniqueFileDescriptor &&cgroup_fd,
-			   const char *relative_path,
-			   const CgroupResourceUsage &usage) noexcept;
-
-		/* virtual methods from class ResumeListener */
-		void OnLuaFinished(lua_State *L) noexcept override;
-		void OnLuaError(lua_State *L,
-				std::exception_ptr e) noexcept override;
-	};
+	class Thread;
 
 	IntrusiveList<Thread> threads;
 
 public:
-	explicit LuaAccounting(Lua::State &&_state,
-			       Lua::ValuePtr &&_handler) noexcept
-		:state(std::move(_state)),
-		 handler(std::move(_handler)) {}
+	LuaAccounting(Lua::State _state, Lua::ValuePtr _handler) noexcept;
 
 	~LuaAccounting() noexcept;
 
