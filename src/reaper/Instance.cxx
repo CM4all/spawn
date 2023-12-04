@@ -70,7 +70,7 @@ Instance::Instance()
 	 unified_cgroup_watch(CreateUnifiedCgroupWatch(event_loop, root_cgroup,
 						       BIND_THIS_METHOD(OnCgroupEmpty))),
 	 lua_accounting(LoadLuaAccounting(event_loop,
-					  "/etc/cm4all/spawn/accounting.lua")),
+					  "/etc/cm4all/spawn/reaper.lua")),
 	 defer_cgroup_delete(event_loop,
 			     BIND_THIS_METHOD(OnDeferredCgroupDelete))
 {

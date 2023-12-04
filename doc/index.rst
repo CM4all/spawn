@@ -26,7 +26,7 @@ Resource Accounting
 
 .. highlight:: lua
 
-The file :file:`/etc/cm4all/spawn/accounting.lua` is a `Lua
+The file :file:`/etc/cm4all/spawn/reaper.lua` is a `Lua
 <http://www.lua.org/>`_ script which is executed at startup.  If it
 defines a function called ``cgroup_released``, then this function will
 be called every time a cgroup is reaped.  The function may for example
