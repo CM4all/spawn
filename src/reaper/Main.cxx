@@ -2,7 +2,7 @@
 // Copyright CM4all GmbH
 // author: Max Kellermann <mk@cm4all.com>
 
-#include "ReaperInstance.hxx"
+#include "Instance.hxx"
 #include "system/SetupProcess.hxx"
 #include "util/PrintException.hxx"
 

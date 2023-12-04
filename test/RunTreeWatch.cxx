@@ -2,7 +2,7 @@
 // Copyright CM4all GmbH
 // author: Max Kellermann <mk@cm4all.com>
 
-#include "TreeWatch.hxx"
+#include "reaper/TreeWatch.hxx"
 #include "event/Loop.hxx"
 #include "util/ConstBuffer.hxx"
 #include "util/PrintException.hxx"
