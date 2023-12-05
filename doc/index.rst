@@ -10,16 +10,24 @@ various other daemons, e.g. `beng-proxy
 <https://github.com/CM4all/workshop/>`__.
 
 
-The ``spawn`` Daemon
+The Accessory Daemon
 --------------------
 
-The daemon fulfills the following duties:
+This daemon listens for seqpacket connections on abstract socket
+:file:`@cm4all-spawn` and allow clients to create namespaces
+(`protocol definition
+<https://github.com/CM4all/libcommon/blob/master/src/spawn/accessory/Protocol.hxx>`__).
+The client is usually the process spawner of daemons like `beng-proxy
+<https://github.com/CM4all/beng-proxy/>`__ and `Lukko
+<https://github.com/CM4all/lukko/>`__.
 
-- watch cgroups below certain scopes; once they run empty, statistics
-  are collected and logged and the cgroup is deleted
-- listen for seqpacket connections on abstract socket
-  :file:`@cm4all-spawn` and allow clients to create namespaces
-  (`protocol definition <https://github.com/CM4all/libcommon/blob/master/src/spawn/daemon/Protocol.hxx>`__)
+
+The Reaper Daemon
+-----------------
+
+This daemon watches cgroups below certain scopes; once they run empty,
+statistics are collected and logged and the cgroup is deleted.
+
 
 Resource Accounting
 ^^^^^^^^^^^^^^^^^^^
