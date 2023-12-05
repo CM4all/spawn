@@ -60,10 +60,7 @@ Push(lua_State *L, Lua::AutoCloseList &auto_close,
 {
 	const ScopeCheckStack check_stack{L, 1};
 
-	Lua::NewCgroupInfo(L, auto_close, relative_path);
-
-	// TODO use
-	(void)cgroup_fd;
+	Lua::NewCgroupInfo(L, auto_close, relative_path, std::move(cgroup_fd));
 
 	// inject more attributes into CgroupInfo's FenvCache
 	lua_getfenv(L, -1);
