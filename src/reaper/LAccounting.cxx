@@ -8,7 +8,7 @@
 #include "lua/AutoCloseList.hxx"
 #include "lua/CoRunner.hxx"
 #include "lua/Resume.hxx"
-#include "lua/io/XattrTable.hxx"
+#include "lua/io/CgroupInfo.hxx"
 #include "io/FileAt.hxx"
 #include "io/UniqueFileDescriptor.hxx"
 #include "util/DeleteDisposer.hxx"
@@ -60,15 +60,13 @@ Push(lua_State *L, Lua::AutoCloseList &auto_close,
 {
 	const ScopeCheckStack check_stack{L, 1};
 
-	lua_newtable(L);
+	Lua::NewCgroupInfo(L, auto_close, relative_path);
 
-	SetField(L, RelativeStackIndex{-1}, "cgroup", relative_path);
+	// TODO use
+	(void)cgroup_fd;
 
-	if (cgroup_fd.IsDefined()) {
-		NewXattrTable(L, std::move(cgroup_fd));
-		auto_close.Add(L, RelativeStackIndex{-1});
-		lua_setfield(L, -2, "cgroup_xattr");
-	}
+	// inject more attributes into CgroupInfo's FenvCache
+	lua_getfenv(L, -1);
 
 	if (usage.cpu.total.count() >= 0)
 		SetField(L, RelativeStackIndex{-1}, "cpu_total", usage.cpu.total);
@@ -82,6 +80,8 @@ Push(lua_State *L, Lua::AutoCloseList &auto_close,
 	if (usage.have_memory_peak)
 		SetField(L, RelativeStackIndex{-1}, "memory_peak",
 			 (lua_Integer)usage.memory_peak);
+
+	lua_pop(L, 1);
 }
 
 inline void

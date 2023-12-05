@@ -4,6 +4,7 @@
 
 #include "LInit.hxx"
 #include "lua/io/XattrTable.hxx"
+#include "lua/io/CgroupInfo.hxx"
 #include "lua/pg/Init.hxx"
 
 extern "C" {
@@ -19,6 +20,7 @@ LuaInit(EventLoop &event_loop)
 	luaL_openlibs(state.get());
 
 	Lua::InitXattrTable(state.get());
+	Lua::RegisterCgroupInfo(state.get());
 	Lua::InitPg(state.get(), event_loop);
 
 	return state;
