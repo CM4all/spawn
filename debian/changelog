@@ -1,6 +1,7 @@
 cm4all-spawn (0.15) unstable; urgency=low
 
   * reaper: refactor the Lua cgroup API
+  * reaper: add Lua attribute for inspecting a cgroup's parent
 
  --   
 
