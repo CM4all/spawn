@@ -36,6 +36,24 @@ log its resource usage.  Example::
     print(cgroup.memory_peak)
   end
 
+The following attributes of the ``cgroup`` parameter can be queried:
+
+* ``path``: the cgroup path as noted in :file:`/proc/self/cgroup`,
+  e.g. :file:`/user.slice/user-1000.slice/session-42.scope`
+
+* ``xattr``: A table containing extended attributes of the control
+  group.
+
+* ``parent``: Information about the parent of this cgroup; it is
+  another object of this type (or ``nil`` if there is no parent
+  cgroup).
+
+* ``cpu_total``, ``cpu_user``, ``cpu_system``: the total,
+  userspace-only or kernel-only CPU usage [in seconds].
+
+* ``memory_peak``: the peak memory usage [in bytes].
+
+
 PostgreSQL Client
 ^^^^^^^^^^^^^^^^^
 
