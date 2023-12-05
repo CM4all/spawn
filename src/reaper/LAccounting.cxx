@@ -5,7 +5,7 @@
 #include "LAccounting.hxx"
 #include "CgroupAccounting.hxx"
 #include "lua/Assert.hxx"
-#include "lua/AutoClose.hxx"
+#include "lua/AutoCloseList.hxx"
 #include "lua/CoRunner.hxx"
 #include "lua/Resume.hxx"
 #include "lua/io/XattrTable.hxx"
@@ -20,6 +20,8 @@ class LuaAccounting::Thread final
 	: public AutoUnlinkIntrusiveListHook,
 		    Lua::ResumeListener
 {
+	Lua::AutoCloseList auto_close;
+
 	/**
 	 * The Lua thread which runs the handler coroutine.
 	 */
@@ -27,14 +29,10 @@ class LuaAccounting::Thread final
 
 public:
 	explicit Thread(lua_State *L) noexcept
-		:runner(L) {}
+		:auto_close(L),
+		 runner(L) {}
 
 	~Thread() noexcept {
-		auto *L = runner.GetMainState();
-		runner.Push(L);
-		AutoClose(L, RelativeStackIndex{-1});
-		lua_pop(L, 1);
-
 		runner.Cancel();
 	}
 
@@ -56,7 +54,8 @@ Push(lua_State *L, CgroupCpuStat::Duration d)
 }
 
 static void
-Push(lua_State *L, UniqueFileDescriptor &&cgroup_fd,
+Push(lua_State *L, Lua::AutoCloseList &auto_close,
+     UniqueFileDescriptor &&cgroup_fd,
      const char *relative_path, const CgroupResourceUsage &usage)
 {
 	const ScopeCheckStack check_stack{L, 1};
@@ -67,7 +66,7 @@ Push(lua_State *L, UniqueFileDescriptor &&cgroup_fd,
 
 	if (cgroup_fd.IsDefined()) {
 		NewXattrTable(L, std::move(cgroup_fd));
-		AddAutoClose(L, CurrentThread{}, RelativeStackIndex{-1});
+		auto_close.Add(L, RelativeStackIndex{-1});
 		lua_setfield(L, -2, "cgroup_xattr");
 	}
 
@@ -95,7 +94,7 @@ LuaAccounting::Thread::Start(const Lua::Value &_handler,
 	const auto L = runner.CreateThread(*this);
 
 	_handler.Push(L);
-	Push(L, std::move(cgroup_fd), relative_path, usage);
+	Push(L, auto_close, std::move(cgroup_fd), relative_path, usage);
 	Resume(L, 1);
 }
 
