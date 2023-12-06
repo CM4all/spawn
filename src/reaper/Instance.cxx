@@ -99,4 +99,6 @@ Instance::OnExit() noexcept
 void
 Instance::OnReload(int) noexcept
 {
+	if (lua_accounting)
+		lua_accounting->Reload();
 }

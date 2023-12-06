@@ -29,6 +29,14 @@ This daemon watches cgroups below certain scopes; once they run empty,
 statistics are collected and logged and the cgroup is deleted.
 
 
+``SIGHUP``
+^^^^^^^^^^
+
+On ``systemctl reload cm4all-spawn-reaper`` (i.e. ``SIGHUP``), the
+daemon calls the Lua function ``reload`` if one was defined.  It is up
+to the Lua script to define the exact meaning of this feature.
+
+
 Resource Accounting
 ^^^^^^^^^^^^^^^^^^^
 

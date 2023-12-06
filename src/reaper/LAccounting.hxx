@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "lua/ReloadRunner.hxx"
 #include "lua/State.hxx"
 #include "lua/ValuePtr.hxx"
 #include "util/IntrusiveList.hxx"
@@ -13,6 +14,8 @@ struct CgroupResourceUsage;
 
 class LuaAccounting final {
 	Lua::State state;
+
+	Lua::ReloadRunner reload{state.get()};
 
 	const Lua::ValuePtr handler;
 
@@ -24,6 +27,10 @@ public:
 	LuaAccounting(Lua::State _state, Lua::ValuePtr _handler) noexcept;
 
 	~LuaAccounting() noexcept;
+
+	void Reload() noexcept {
+		reload.Start();
+	}
 
 	void InvokeCgroupReleased(UniqueFileDescriptor cgroup_fd,
 				  const char *relative_path,
