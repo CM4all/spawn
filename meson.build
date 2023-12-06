@@ -109,6 +109,9 @@ libcommon_enable_spawn_local = false
 libcommon_enable_spawn_daemon = true
 libcommon_enable_spawn_init = true
 
+libcommon_require_cap = get_option('cap')
+libcommon_enable_seccomp = get_option('seccomp')
+
 subdir('libcommon/src/util')
 subdir('libcommon/src/lib/cap')
 subdir('libcommon/src/lib/fmt')
