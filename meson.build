@@ -8,6 +8,8 @@ project('CM4all spawn', 'cpp', version: '0.15',
 
 compiler = meson.get_compiler('cpp')
 
+conf = configuration_data()
+
 debug = get_option('b_ndebug') != 'true'
 
 common_flags = [
@@ -103,6 +105,8 @@ inc = include_directories(
   'libcommon/src',
 )
 
+libsystemd = dependency('libsystemd', required: get_option('systemd'))
+
 libcommon_enable_DefaultFifoBuffer = false
 libcommon_enable_spawn_server = false
 libcommon_enable_spawn_local = false
@@ -111,6 +115,7 @@ libcommon_enable_spawn_init = true
 
 libcommon_require_cap = get_option('cap')
 libcommon_enable_seccomp = get_option('seccomp')
+libcommon_enable_libsystemd = libsystemd.found()
 
 subdir('libcommon/src/util')
 subdir('libcommon/src/lib/cap')
@@ -140,6 +145,9 @@ subdir('libcommon/src/lua')
 subdir('libcommon/src/lua/io')
 subdir('libcommon/src/lua/pg')
 
+conf.set('HAVE_LIBSYSTEMD', libsystemd.found())
+configure_file(output: 'config.h', configuration: conf)
+
 executable('cm4all-spawn-accessory',
   'src/accessory/Main.cxx',
   'src/accessory/Instance.cxx',
@@ -148,7 +156,7 @@ executable('cm4all-spawn-accessory',
   'src/accessory/Request.cxx',
   include_directories: inc,
   dependencies: [
-    dependency('libsystemd'),
+    libsystemd,
     event_dep,
     system_dep,
     io_dep,
@@ -172,7 +180,7 @@ executable('cm4all-spawn-reaper',
   'src/reaper/LAccounting.cxx',
   include_directories: inc,
   dependencies: [
-    dependency('libsystemd'),
+    libsystemd,
     event_dep,
     system_dep,
     io_dep,

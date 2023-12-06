@@ -5,8 +5,11 @@
 #include "Instance.hxx"
 #include "system/SetupProcess.hxx"
 #include "util/PrintException.hxx"
+#include "config.h"
 
+#ifdef HAVE_LIBSYSTEMD
 #include <systemd/sd-daemon.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,8 +21,10 @@ Run()
 
 	Instance instance;
 
+#ifdef HAVE_LIBSYSTEMD
 	/* tell systemd we're ready */
 	sd_notify(0, "READY=1");
+#endif // HAVE_LIBSYSTEMD
 
 	/* main loop */
 	instance.Run();

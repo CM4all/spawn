@@ -8,8 +8,11 @@
 #include "net/UniqueSocketDescriptor.hxx"
 #include "system/Error.hxx"
 #include "util/PrintException.hxx"
+#include "config.h"
 
+#ifdef HAVE_LIBSYSTEMD
 #include <systemd/sd-daemon.h>
+#endif
 
 #include <signal.h>
 
@@ -39,6 +42,7 @@ Instance::Instance()
 	:shutdown_listener(event_loop, BIND_THIS_METHOD(OnExit)),
 	 sighup_event(event_loop, SIGHUP, BIND_THIS_METHOD(OnReload))
 {
+#ifdef HAVE_LIBSYSTEMD
 	if (int n = sd_listen_fds(true); n > 0) {
 		/* launched with systemd socket activation */
 		for (int i = 0; i < n; ++i) {
@@ -46,9 +50,12 @@ Instance::Instance()
 			listeners.front().Listen(UniqueSocketDescriptor{SD_LISTEN_FDS_START + i});
 		}
 	} else {
+#endif // HAVE_LIBSYSTEMD
 		listeners.emplace_front(event_loop, *this);
 		listeners.front().Listen(CreateBindLocalSocket("@cm4all-spawn"));
+#ifdef HAVE_LIBSYSTEMD
 	}
+#endif // HAVE_LIBSYSTEMD
 
 	shutdown_listener.Enable();
 	sighup_event.Enable();
