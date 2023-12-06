@@ -19,6 +19,8 @@ Optional dependencies:
   dropping unnecessary Linux capabilities
 - `libseccomp <https://github.com/seccomp/libseccomp>`__ for system
   call filter support
+- `libpq <https://www.postgresql.org/>`__ for PostgreSQL support in
+  Lua code
 - `systemd <https://www.freedesktop.org/wiki/Software/systemd/>`__
 
 Get the source code::

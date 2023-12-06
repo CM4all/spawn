@@ -5,7 +5,10 @@
 #include "LInit.hxx"
 #include "lua/io/XattrTable.hxx"
 #include "lua/io/CgroupInfo.hxx"
+
+#ifdef HAVE_PG
 #include "lua/pg/Init.hxx"
+#endif
 
 extern "C" {
 #include <lauxlib.h>
@@ -13,7 +16,7 @@ extern "C" {
 }
 
 Lua::State
-LuaInit(EventLoop &event_loop)
+LuaInit([[maybe_unused]] EventLoop &event_loop)
 {
 	Lua::State state{luaL_newstate()};
 
@@ -21,7 +24,10 @@ LuaInit(EventLoop &event_loop)
 
 	Lua::InitXattrTable(state.get());
 	Lua::RegisterCgroupInfo(state.get());
+
+#ifdef HAVE_PG
 	Lua::InitPg(state.get(), event_loop);
+#endif
 
 	return state;
 }

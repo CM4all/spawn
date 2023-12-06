@@ -140,12 +140,18 @@ subdir('libcommon/src/event')
 subdir('libcommon/src/net')
 subdir('libcommon/src/event/net')
 subdir('libcommon/src/spawn')
-subdir('libcommon/src/pg')
 subdir('libcommon/src/lua')
 subdir('libcommon/src/lua/io')
-subdir('libcommon/src/lua/pg')
+
+libcommon_require_pg = get_option('pg')
+subdir('libcommon/src/pg')
+if pg_dep.found()
+  subdir('libcommon/src/lua/pg')
+  pg_dep = lua_pg_dep
+endif
 
 conf.set('HAVE_LIBSYSTEMD', libsystemd.found())
+conf.set('HAVE_PG', pg_dep.found())
 configure_file(output: 'config.h', configuration: conf)
 
 executable('cm4all-spawn-accessory',
@@ -186,7 +192,7 @@ executable('cm4all-spawn-reaper',
     io_dep,
     lua_dep,
     lua_io_dep,
-    lua_pg_dep,
+    pg_dep,
     util_dep,
     fmt_dep,
   ],
