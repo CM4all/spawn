@@ -80,7 +80,7 @@ Instance::OnCgroupEmpty(const char *path) noexcept
 		return;
 
 	UniqueFileDescriptor cgroup_fd;
-	cgroup_fd.Open(root_cgroup, path + 1, O_DIRECTORY|O_RDONLY);
+	(void)cgroup_fd.Open(root_cgroup, path + 1, O_DIRECTORY|O_RDONLY);
 
 	// TODO read resource usage right before the cgroup actually gets deleted
 	const auto u = cgroup_fd.IsDefined()
