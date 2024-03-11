@@ -3,6 +3,8 @@ project('CM4all spawn', 'cpp', version: '0.16',
   default_options: [
     'cpp_std=c++2a',
     'warning_level=3',
+
+    'fmt:cpp_std=c++2a',
   ],
 )
 
