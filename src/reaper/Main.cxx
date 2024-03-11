@@ -7,6 +7,10 @@
 #include "util/PrintException.hxx"
 #include "config.h"
 
+#ifdef HAVE_LIBSODIUM
+#include "lua/sodium/Init.hxx"
+#endif
+
 #ifdef HAVE_LIBSYSTEMD
 #include <systemd/sd-daemon.h>
 #endif

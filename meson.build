@@ -117,11 +117,13 @@ libcommon_enable_spawn_init = true
 
 libcommon_require_cap = get_option('cap')
 libcommon_enable_seccomp = get_option('seccomp')
+libcommon_require_sodium = get_option('sodium')
 libcommon_enable_libsystemd = libsystemd.found()
 
 subdir('libcommon/src/util')
 subdir('libcommon/src/lib/cap')
 subdir('libcommon/src/lib/fmt')
+subdir('libcommon/src/lib/sodium')
 subdir('libcommon/src/io')
 subdir('libcommon/src/io/linux')
 subdir('libcommon/src/system')
@@ -152,6 +154,13 @@ if pg_dep.found()
   pg_dep = lua_pg_dep
 endif
 
+if sodium_dep.found()
+  subdir('libcommon/src/lua/sodium')
+else
+  lua_sodium_dep = sodium_dep
+endif
+
+conf.set('HAVE_LIBSODIUM', sodium_dep.found())
 conf.set('HAVE_LIBSYSTEMD', libsystemd.found())
 conf.set('HAVE_PG', pg_dep.found())
 configure_file(output: 'config.h', configuration: conf)

@@ -6,6 +6,7 @@ MESON_OPTIONS = \
 	-Ddocumentation=enabled \
 	-Dpg=enabled \
 	-Dseccomp=enabled \
+	-Dsodium=enabled \
 	-Dsystemd=enabled \
 	--werror
 

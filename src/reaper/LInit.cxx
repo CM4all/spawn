@@ -22,6 +22,10 @@ LuaInit([[maybe_unused]] EventLoop &event_loop)
 
 	luaL_openlibs(state.get());
 
+#ifdef HAVE_LIBSODIUM
+	Lua::InitSodium(L);
+#endif
+
 	Lua::InitXattrTable(state.get());
 	Lua::RegisterCgroupInfo(state.get());
 
