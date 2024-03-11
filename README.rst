@@ -4,6 +4,10 @@ spawn
 *spawn* is a daemon which provides services to other daemons wishing
 to spawn child processes
 
+For more information, `read the manual
+<https://cm4all-spawn.readthedocs.io/en/latest/>`__ in the ``doc``
+directory.
+
 
 Building spawn
 --------------
