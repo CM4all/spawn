@@ -2,6 +2,11 @@
 # -*- mode: makefile; coding: utf-8 -*-
 
 MESON_OPTIONS = \
+	-Dcap=enabled \
+	-Ddocumentation=enabled \
+	-Dpg=enabled \
+	-Dseccomp=enabled \
+	-Dsystemd=enabled \
 	--werror
 
 %:
