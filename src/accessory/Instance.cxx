@@ -5,8 +5,8 @@
 #include "Instance.hxx"
 #include "Namespace.hxx"
 #include "net/LocalSocketAddress.hxx"
+#include "net/SocketError.hxx"
 #include "net/UniqueSocketDescriptor.hxx"
-#include "system/Error.hxx"
 #include "util/PrintException.hxx"
 #include "config.h"
 
@@ -25,15 +25,15 @@ CreateBindLocalSocket(const LocalSocketAddress &address)
 {
 	UniqueSocketDescriptor s;
 	if (!s.CreateNonBlock(AF_LOCAL, SOCK_SEQPACKET, 0))
-		throw MakeErrno("Failed to create socket");
+		throw MakeSocketError("Failed to create socket");
 
 	s.SetBoolOption(SOL_SOCKET, SO_PASSCRED, true);
 
 	if (!s.Bind(address))
-		throw MakeErrno("Failed to bind");
+		throw MakeSocketError("Failed to bind");
 
 	if (!s.Listen(64))
-		throw MakeErrno("Failed to listen");
+		throw MakeSocketError("Failed to listen");
 
 	return s;
 }
