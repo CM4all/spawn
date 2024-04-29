@@ -60,8 +60,9 @@ class TreeWatch : InotifyHandler {
 	 * Map inotify watch descriptors to #Directory.
 	 */
 	IntrusiveHashSet<Directory, 256,
-			 IntrusiveHashSetOperators<std::hash<int>, std::equal_to<int>,
-						   Directory::GetInotify>> watch_descriptor_map;
+			 IntrusiveHashSetOperators<Directory, Directory::GetInotify,
+						   std::hash<int>,
+						   std::equal_to<int>>> watch_descriptor_map;
 
 public:
 	TreeWatch(EventLoop &event_loop,
