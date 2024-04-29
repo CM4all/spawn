@@ -4,7 +4,7 @@
 
 #include "Instance.hxx"
 #include "Namespace.hxx"
-#include "net/AllocatedSocketAddress.hxx"
+#include "net/LocalSocketAddress.hxx"
 #include "net/UniqueSocketDescriptor.hxx"
 #include "system/Error.hxx"
 #include "util/PrintException.hxx"
@@ -16,8 +16,12 @@
 
 #include <signal.h>
 
+using std::string_view_literals::operator""sv;
+
+static constexpr LocalSocketAddress default_bind_address{"@cm4all-spawn"sv};
+
 static UniqueSocketDescriptor
-CreateBindLocalSocket(const char *path)
+CreateBindLocalSocket(const LocalSocketAddress &address)
 {
 	UniqueSocketDescriptor s;
 	if (!s.CreateNonBlock(AF_LOCAL, SOCK_SEQPACKET, 0))
@@ -25,12 +29,8 @@ CreateBindLocalSocket(const char *path)
 
 	s.SetBoolOption(SOL_SOCKET, SO_PASSCRED, true);
 
-	{
-		AllocatedSocketAddress address;
-		address.SetLocal(path);
-		if (!s.Bind(address))
-			throw MakeErrno("Failed to bind");
-	}
+	if (!s.Bind(address))
+		throw MakeErrno("Failed to bind");
 
 	if (!s.Listen(64))
 		throw MakeErrno("Failed to listen");
@@ -52,7 +52,7 @@ Instance::Instance()
 	} else {
 #endif // HAVE_LIBSYSTEMD
 		listeners.emplace_front(event_loop, *this);
-		listeners.front().Listen(CreateBindLocalSocket("@cm4all-spawn"));
+		listeners.front().Listen(CreateBindLocalSocket(default_bind_address));
 #ifdef HAVE_LIBSYSTEMD
 	}
 #endif // HAVE_LIBSYSTEMD
