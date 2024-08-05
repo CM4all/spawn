@@ -3,7 +3,7 @@ cm4all-spawn (0.16) unstable; urgency=low
   * reaper/lua: add libsodium bindings
   * reaper/pg: fix assertion failure
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Mon, 05 Aug 2024 19:12:59 +0200
 
 cm4all-spawn (0.15) unstable; urgency=low
 
