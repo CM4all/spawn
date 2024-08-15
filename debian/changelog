@@ -3,7 +3,7 @@ cm4all-spawn (0.17) unstable; urgency=low
   * reaper/pg: fix 0.16 regression
   * increase listener backlog to 256
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Thu, 15 Aug 2024 13:58:18 +0200
 
 cm4all-spawn (0.16) unstable; urgency=low
 
