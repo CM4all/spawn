@@ -37,7 +37,7 @@ CollectCgroupStats(const char *suffix,
 
 	if (u.cpu.user.count() >= 0 || u.cpu.system.count() >= 0) {
 		const auto user = std::max(u.cpu.user.count(), 0.);
-		const auto system = std::max(u.cpu.user.count(), 0.);
+		const auto system = std::max(u.cpu.system.count(), 0.);
 		const auto total = u.cpu.total.count() >= 0
 			? u.cpu.total.count()
 			: user + system;

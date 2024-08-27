@@ -1,6 +1,6 @@
 cm4all-spawn (0.18) unstable; urgency=low
 
-  * 
+  * reaper: fix system/user CPU usage mixup
 
  --   
 
