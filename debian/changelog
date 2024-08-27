@@ -2,7 +2,7 @@ cm4all-spawn (0.18) unstable; urgency=low
 
   * reaper: fix system/user CPU usage mixup
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Tue, 27 Aug 2024 10:28:15 +0200
 
 cm4all-spawn (0.17) unstable; urgency=low
 
