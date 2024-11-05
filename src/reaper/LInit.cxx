@@ -10,6 +10,10 @@
 #include "lua/pg/Init.hxx"
 #endif
 
+#ifdef HAVE_LIBSODIUM
+#include "lua/sodium/Init.hxx"
+#endif
+
 extern "C" {
 #include <lauxlib.h>
 #include <lualib.h>
@@ -23,7 +27,7 @@ LuaInit([[maybe_unused]] EventLoop &event_loop)
 	luaL_openlibs(state.get());
 
 #ifdef HAVE_LIBSODIUM
-	Lua::InitSodium(L);
+	Lua::InitSodium(state.get());
 #endif
 
 	Lua::InitXattrTable(state.get());
