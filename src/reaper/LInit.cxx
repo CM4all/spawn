@@ -3,6 +3,7 @@
 // author: Max Kellermann <mk@cm4all.com>
 
 #include "LInit.hxx"
+#include "config.h"
 #include "lua/io/XattrTable.hxx"
 #include "lua/io/CgroupInfo.hxx"
 
