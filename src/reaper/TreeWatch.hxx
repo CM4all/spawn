@@ -48,7 +48,7 @@ class TreeWatch : InotifyHandler {
 		int AddWatch(InotifyEvent &inotify_event);
 
 		struct GetInotify {
-			constexpr int operator()(const Directory &d) noexcept {
+			constexpr int operator()(const Directory &d) const noexcept {
 				return d.watch_descriptor;
 			}
 		};
