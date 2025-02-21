@@ -47,7 +47,7 @@ Instance::Instance()
 		/* launched with systemd socket activation */
 		for (int i = 0; i < n; ++i) {
 			listeners.emplace_front(event_loop, *this);
-			listeners.front().Listen(UniqueSocketDescriptor{SD_LISTEN_FDS_START + i});
+			listeners.front().Listen(UniqueSocketDescriptor{AdoptTag{}, SD_LISTEN_FDS_START + i});
 		}
 	} else {
 #endif // HAVE_LIBSYSTEMD
