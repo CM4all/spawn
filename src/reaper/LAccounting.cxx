@@ -78,6 +78,18 @@ Push(lua_State *L, Lua::AutoCloseList &auto_close,
 		SetField(L, RelativeStackIndex{-1}, "memory_peak",
 			 (lua_Integer)usage.memory_peak);
 
+	if (usage.have_memory_events_high)
+		SetField(L, RelativeStackIndex{-1}, "memory_events_high",
+			 static_cast<lua_Integer>(usage.memory_events_high));
+
+	if (usage.have_memory_events_max)
+		SetField(L, RelativeStackIndex{-1}, "memory_events_max",
+			 static_cast<lua_Integer>(usage.memory_events_max));
+
+	if (usage.have_memory_events_oom)
+		SetField(L, RelativeStackIndex{-1}, "memory_events_oom",
+			 static_cast<lua_Integer>(usage.memory_events_oom));
+
 	if (usage.have_pids_peak)
 		SetField(L, RelativeStackIndex{-1}, "pids_peak",
 			 (lua_Integer)usage.pids_peak);

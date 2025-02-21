@@ -20,9 +20,14 @@ struct CgroupResourceUsage {
 
 	uint_least64_t memory_peak;
 
+	uint_least32_t memory_events_high, memory_events_max, memory_events_oom;
+
 	uint_least32_t pids_peak, pids_events_max;
 
 	bool have_memory_peak = false;
+
+	bool have_memory_events_high = false, have_memory_events_max = false;
+	bool have_memory_events_oom = false;
 
 	bool have_pids_peak = false, have_pids_events_max = false;
 };

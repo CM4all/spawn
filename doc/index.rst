@@ -69,6 +69,16 @@ The following attributes of the ``cgroup`` parameter can be queried:
 
 * ``memory_peak``: the peak memory usage [in bytes].
 
+* ``memory_events_high``: The number of times processes of the cgroup
+  are throttled and routed to perform direct memory reclaim because
+  the high memory boundary was exceeded.
+
+* ``memory_events_max``: The number of times the cgroup's memory usage
+  was about to go over the max boundary.
+
+* ``memory_events_oom``: The number of time the cgroup's memory usage
+  was reached the limit and allocation was about to fail.
+
 * ``pids_peak``: the peak number of processes.
 
 * ``pids_events_max``: the number of times the ``pids.max`` setting

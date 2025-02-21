@@ -61,6 +61,30 @@ ReadCgroupResourceUsage(FileDescriptor cgroup_fd) noexcept
 	}
 
 	try {
+		for (const std::string_view line : IterableSmallTextFile<4096>{FileAt{cgroup_fd, "memory.events"}}) {
+			const auto [name, value_s] = Split(line, ' ');
+
+			if (name == "high"sv) {
+				if (auto value = ParseInteger<uint_least32_t>(value_s)) {
+					result.memory_events_high = *value;
+					result.have_memory_events_high = true;
+				}
+			} else if (name == "max"sv) {
+				if (auto value = ParseInteger<uint_least32_t>(value_s)) {
+					result.memory_events_max = *value;
+					result.have_memory_events_max = true;
+				}
+			} else if (name == "oom"sv) {
+				if (auto value = ParseInteger<uint_least32_t>(value_s)) {
+					result.memory_events_oom = *value;
+					result.have_memory_events_oom = true;
+				}
+			}
+		}
+	} catch (...) {
+	}
+
+	try {
 		WithSmallTextFile<64>(FileAt{cgroup_fd, "pids.peak"}, [&result](std::string_view contents){
 			if (auto value = ParseInteger<uint_least32_t>(StripRight(contents))) {
 				result.pids_peak = *value;

@@ -54,6 +54,21 @@ CollectCgroupStats(const char *suffix,
 				   (u.memory_peak + MEGA / 2 - 1) / MEGA);
 	}
 
+	if ((u.have_memory_events_high && u.memory_events_high > 0) ||
+	    (u.have_memory_events_max && u.memory_events_max > 0)) {
+		const auto high = u.have_memory_events_high
+			? u.memory_events_high
+			: 0;
+		const auto max = u.have_memory_events_max
+			? u.memory_events_max
+			: 0;
+
+		p = fmt::format_to(p, " reclaim={}", high + max);
+	}
+
+	if (u.have_memory_events_oom && u.memory_events_oom > 0)
+		p = fmt::format_to(p, " oom={}", u.memory_events_oom);
+
 	if (u.have_pids_peak)
 		p = fmt::format_to(p, " procs={}", u.pids_peak);
 
