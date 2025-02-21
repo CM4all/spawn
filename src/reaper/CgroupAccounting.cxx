@@ -9,8 +9,6 @@
 #include "io/UniqueFileDescriptor.hxx"
 #include "util/PrintException.hxx"
 
-#include <fcntl.h> // for O_*
-
 using std::string_view_literals::operator""sv;
 
 static size_t
