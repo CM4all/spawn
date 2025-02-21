@@ -5,6 +5,7 @@
 #include "CgroupAccounting.hxx"
 #include "lib/fmt/ToBuffer.hxx"
 #include "system/Error.hxx"
+#include "io/SmallTextFile.hxx"
 #include "io/Open.hxx"
 #include "io/UniqueFileDescriptor.hxx"
 #include "util/NumberParser.hxx"
@@ -13,70 +14,25 @@
 
 using std::string_view_literals::operator""sv;
 
-static size_t
-ReadFile(FileDescriptor fd, std::span<std::byte> dest)
-{
-	ssize_t nbytes = fd.Read(dest);
-	if (nbytes < 0)
-		throw MakeErrno("Failed to read");
-
-	return nbytes;
-}
-
-static char *
-ReadFileZ(FileDescriptor fd, std::span<char> dest)
-{
-	size_t length = ReadFile(fd, std::as_writable_bytes(dest.first(dest.size() - 1)));
-	dest[length] = 0;
-	return dest.data();
-}
-
-static std::string_view
-FindLine(const char *data, const char *name)
-{
-	const size_t name_length = strlen(name);
-	const char *p = data;
-
-	while (true) {
-		const char *needle = strstr(p, name);
-		if (needle == nullptr)
-			break;
-
-		if ((needle == data || needle[-1] == '\n') && needle[name_length] == ' ') {
-			const char *value = needle + name_length + 1;
-			const char *end = strchr(value, '\n');
-			if (end == nullptr)
-				return value;
-			else
-				return {value, end};
-		}
-
-		p = needle + 1;
-	}
-
-	return {};
-}
-
 static CgroupCpuStat
 ReadCgroupCpuStat(FileDescriptor cgroup_fd)
 {
-	char buffer[4096];
-	const char *data = ReadFileZ(OpenReadOnly(cgroup_fd, "cpu.stat"),
-				     buffer);
-
 	CgroupCpuStat result;
 
-	if (const auto line = FindLine(data, "usage_usec"); line.data() != nullptr)
-		if (auto value = ParseInteger<uint_least64_t>(line))
-			result.total = std::chrono::microseconds(*value);
+	for (const std::string_view line : IterableSmallTextFile<4096>{FileAt{cgroup_fd, "cpu.stat"}}) {
+		const auto [name, value_s] = Split(line, ' ');
 
-	if (const auto line = FindLine(data, "user_usec"); line.data() != nullptr)
-		if (auto value = ParseInteger<uint_least64_t>(line))
-			result.user = std::chrono::microseconds(*value);
-
-	if (const auto line = FindLine(data, "system_usec"); line.data() != nullptr)
-		if (auto value = ParseInteger<uint_least64_t>(line))
-			result.system = std::chrono::microseconds(*value);
+		if (name == "usage_usec"sv) {
+			if (auto value = ParseInteger<uint_least64_t>(value_s))
+				result.total = std::chrono::microseconds(*value);
+		} else if (name == "user_usec"sv) {
+			if (auto value = ParseInteger<uint_least64_t>(value_s))
+				result.user = std::chrono::microseconds(*value);
+		} else if (name == "system_usec"sv) {
+			if (auto value = ParseInteger<uint_least64_t>(value_s))
+				result.system = std::chrono::microseconds(*value);
+		}
+	}
 
 	return result;
 }
