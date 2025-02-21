@@ -20,11 +20,11 @@ struct CgroupResourceUsage {
 
 	uint_least64_t memory_peak;
 
-	uint_least32_t pids_peak;
+	uint_least32_t pids_peak, pids_events_max;
 
 	bool have_memory_peak = false;
 
-	bool have_pids_peak = false;
+	bool have_pids_peak = false, have_pids_events_max = false;
 };
 
 [[gnu::pure]]

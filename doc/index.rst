@@ -71,6 +71,9 @@ The following attributes of the ``cgroup`` parameter can be queried:
 
 * ``pids_peak``: the peak number of processes.
 
+* ``pids_events_max``: the number of times the ``pids.max`` setting
+  was exceeded.
+
 
 libsodium
 ^^^^^^^^^

@@ -70,5 +70,19 @@ ReadCgroupResourceUsage(FileDescriptor cgroup_fd) noexcept
 	} catch (...) {
 	}
 
+	try {
+		for (const std::string_view line : IterableSmallTextFile<4096>{FileAt{cgroup_fd, "pids.events"}}) {
+			const auto [name, value_s] = Split(line, ' ');
+
+			if (name == "max"sv) {
+				if (auto value = ParseInteger<uint_least32_t>(value_s)) {
+					result.pids_events_max = *value;
+					result.have_pids_events_max = true;
+				}
+			}
+		}
+	} catch (...) {
+	}
+
 	return result;
 }
