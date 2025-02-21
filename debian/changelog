@@ -1,6 +1,6 @@
 cm4all-spawn (0.19) unstable; urgency=low
 
-  * reaper: read "pids.peak"
+  * reaper: read "pids.peak", "pids.events"
 
  --   
 
