@@ -48,7 +48,7 @@ CollectCgroupStats(const char *suffix,
 	}
 
 	if (u.have_memory_peak) {
-		static constexpr uint64_t MEGA = 1024 * 1024;
+		static constexpr uint_least64_t MEGA = 1024 * 1024;
 
 		p = fmt::format_to(p, " memory={}M",
 				   (u.memory_peak + MEGA / 2 - 1) / MEGA);

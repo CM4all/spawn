@@ -18,7 +18,7 @@ struct CgroupCpuStat {
 struct CgroupResourceUsage {
 	CgroupCpuStat cpu;
 
-	uint64_t memory_peak;
+	uint_least64_t memory_peak;
 
 	bool have_memory_peak = false;
 };
