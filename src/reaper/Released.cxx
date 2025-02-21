@@ -54,6 +54,9 @@ CollectCgroupStats(const char *suffix,
 				   (u.memory_peak + MEGA / 2 - 1) / MEGA);
 	}
 
+	if (u.have_pids_peak)
+		p = fmt::format_to(p, " procs={}", u.pids_peak);
+
 	if (p > buffer)
 		fmt::print(stderr, "{}:{}\n", suffix,
 			   std::string_view{buffer, p});

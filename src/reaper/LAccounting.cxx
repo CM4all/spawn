@@ -78,6 +78,10 @@ Push(lua_State *L, Lua::AutoCloseList &auto_close,
 		SetField(L, RelativeStackIndex{-1}, "memory_peak",
 			 (lua_Integer)usage.memory_peak);
 
+	if (usage.have_pids_peak)
+		SetField(L, RelativeStackIndex{-1}, "pids_peak",
+			 (lua_Integer)usage.pids_peak);
+
 	lua_pop(L, 1);
 }
 

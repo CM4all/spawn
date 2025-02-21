@@ -69,6 +69,8 @@ The following attributes of the ``cgroup`` parameter can be queried:
 
 * ``memory_peak``: the peak memory usage [in bytes].
 
+* ``pids_peak``: the peak number of processes.
+
 
 libsodium
 ^^^^^^^^^

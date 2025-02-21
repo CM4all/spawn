@@ -60,5 +60,15 @@ ReadCgroupResourceUsage(FileDescriptor cgroup_fd) noexcept
 	} catch (...) {
 	}
 
+	try {
+		WithSmallTextFile<64>(FileAt{cgroup_fd, "pids.peak"}, [&result](std::string_view contents){
+			if (auto value = ParseInteger<uint_least32_t>(StripRight(contents))) {
+				result.pids_peak = *value;
+				result.have_pids_peak = true;
+			}
+		});
+	} catch (...) {
+	}
+
 	return result;
 }
