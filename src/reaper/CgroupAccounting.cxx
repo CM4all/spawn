@@ -50,17 +50,14 @@ ReadCgroupResourceUsage(FileDescriptor cgroup_fd) noexcept
 		PrintException(std::current_exception());
 	}
 
-	if (UniqueFileDescriptor fd; fd.OpenReadOnly(cgroup_fd, "memory.peak")) {
-		char buffer[64];
-		ssize_t nbytes = fd.Read(std::as_writable_bytes(std::span{buffer}));
-		if (nbytes > 0 && static_cast<std::size_t>(nbytes) < sizeof(buffer)) {
-			const std::string_view s{buffer, static_cast<std::size_t>(nbytes)};
-
-			if (auto value = ParseInteger<uint_least64_t>(StripRight(s))) {
+	try {
+		WithSmallTextFile<64>(FileAt{cgroup_fd, "memory.peak"}, [&result](std::string_view contents){
+			if (auto value = ParseInteger<uint_least64_t>(StripRight(contents))) {
 				result.memory_peak = *value;
 				result.have_memory_peak = true;
 			}
-		}
+		});
+	} catch (...) {
 	}
 
 	return result;
