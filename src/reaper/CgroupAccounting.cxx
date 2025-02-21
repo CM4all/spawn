@@ -7,7 +7,9 @@
 #include "system/Error.hxx"
 #include "io/Open.hxx"
 #include "io/UniqueFileDescriptor.hxx"
+#include "util/NumberParser.hxx"
 #include "util/PrintException.hxx"
+#include "util/StringStrip.hxx"
 
 using std::string_view_literals::operator""sv;
 
@@ -29,7 +31,7 @@ ReadFileZ(FileDescriptor fd, std::span<char> dest)
 	return dest.data();
 }
 
-static const char *
+static std::string_view
 FindLine(const char *data, const char *name)
 {
 	const size_t name_length = strlen(name);
@@ -40,13 +42,19 @@ FindLine(const char *data, const char *name)
 		if (needle == nullptr)
 			break;
 
-		if ((needle == data || needle[-1] == '\n') && needle[name_length] == ' ')
-			return needle + name_length + 1;
+		if ((needle == data || needle[-1] == '\n') && needle[name_length] == ' ') {
+			const char *value = needle + name_length + 1;
+			const char *end = strchr(value, '\n');
+			if (end == nullptr)
+				return value;
+			else
+				return {value, end};
+		}
 
 		p = needle + 1;
 	}
 
-	return nullptr;
+	return {};
 }
 
 static CgroupCpuStat
@@ -58,17 +66,17 @@ ReadCgroupCpuStat(FileDescriptor cgroup_fd)
 
 	CgroupCpuStat result;
 
-	const char *p = FindLine(data, "usage_usec");
-	if (p != nullptr)
-		result.total = std::chrono::microseconds(strtoull(p, nullptr, 10));
+	if (const auto line = FindLine(data, "usage_usec"); line.data() != nullptr)
+		if (auto value = ParseInteger<uint_least64_t>(line))
+			result.total = std::chrono::microseconds(*value);
 
-	p = FindLine(data, "user_usec");
-	if (p != nullptr)
-		result.user = std::chrono::microseconds(strtoull(p, nullptr, 10));
+	if (const auto line = FindLine(data, "user_usec"); line.data() != nullptr)
+		if (auto value = ParseInteger<uint_least64_t>(line))
+			result.user = std::chrono::microseconds(*value);
 
-	p = FindLine(data, "system_usec");
-	if (p != nullptr)
-		result.system = std::chrono::microseconds(strtoull(p, nullptr, 10));
+	if (const auto line = FindLine(data, "system_usec"); line.data() != nullptr)
+		if (auto value = ParseInteger<uint_least64_t>(line))
+			result.system = std::chrono::microseconds(*value);
 
 	return result;
 }
@@ -90,12 +98,12 @@ ReadCgroupResourceUsage(FileDescriptor cgroup_fd) noexcept
 		char buffer[64];
 		ssize_t nbytes = fd.Read(std::as_writable_bytes(std::span{buffer}));
 		if (nbytes > 0 && static_cast<std::size_t>(nbytes) < sizeof(buffer)) {
-			buffer[nbytes] = 0;
+			const std::string_view s{buffer, static_cast<std::size_t>(nbytes)};
 
-			char *endptr;
-			result.memory_peak = strtoull(buffer, &endptr, 10);
-			if (endptr > buffer)
+			if (auto value = ParseInteger<uint_least64_t>(StripRight(s))) {
+				result.memory_peak = *value;
 				result.have_memory_peak = true;
+			}
 		}
 	}
 
