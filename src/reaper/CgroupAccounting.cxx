@@ -22,11 +22,11 @@ ReadFile(FileDescriptor fd, std::span<std::byte> dest)
 }
 
 static char *
-ReadFileZ(FileDescriptor fd, char *buffer, size_t buffer_size)
+ReadFileZ(FileDescriptor fd, std::span<char> dest)
 {
-	size_t length = ReadFile(fd, std::as_writable_bytes(std::span{buffer, buffer_size - 1}));
-	buffer[length] = 0;
-	return buffer;
+	size_t length = ReadFile(fd, std::as_writable_bytes(dest.first(dest.size() - 1)));
+	dest[length] = 0;
+	return dest.data();
 }
 
 static const char *
@@ -54,7 +54,7 @@ ReadCgroupCpuStat(FileDescriptor cgroup_fd)
 {
 	char buffer[4096];
 	const char *data = ReadFileZ(OpenReadOnly(cgroup_fd, "cpu.stat"),
-				     buffer, sizeof(buffer));
+				     buffer);
 
 	CgroupCpuStat result;
 
