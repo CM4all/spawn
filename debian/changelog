@@ -2,7 +2,7 @@ cm4all-spawn (0.19) unstable; urgency=low
 
   * reaper: read "pids.peak", "pids.events", "memory.events"
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Fri, 21 Feb 2025 17:54:08 +0100
 
 cm4all-spawn (0.18) unstable; urgency=low
 
