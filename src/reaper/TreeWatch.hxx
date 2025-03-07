@@ -5,17 +5,18 @@
 #pragma once
 
 #include "io/UniqueFileDescriptor.hxx"
-#include "event/InotifyEvent.hxx"
-#include "util/IntrusiveHashSet.hxx"
+#include "event/InotifyManager.hxx"
 
 #include <map>
 #include <string>
 #include <string_view>
 
-class TreeWatch : InotifyHandler {
-	InotifyEvent inotify_event;
+class TreeWatch {
+	InotifyManager inotify_manager;
 
-	struct Directory final : IntrusiveHashSetHook<> {
+	struct Directory final : InotifyWatch {
+		TreeWatch &tree_watch;
+
 		Directory *const parent;
 
 		const std::string name;
@@ -24,14 +25,12 @@ class TreeWatch : InotifyHandler {
 
 		std::map<std::string, Directory, std::less<>> children;
 
-		int watch_descriptor = -1;
-
 		const bool persist;
 		bool all;
 
 		struct Root {};
 
-		Directory(Root, FileDescriptor directory_fd,
+		Directory(Root, TreeWatch &_tree_watch, FileDescriptor directory_fd,
 			  const char *path);
 
 		Directory(Directory &_parent, std::string_view _name,
@@ -45,31 +44,21 @@ class TreeWatch : InotifyHandler {
 
 		void Open(FileDescriptor parent_fd);
 
-		int AddWatch(InotifyEvent &inotify_event);
+		void AddWatch();
 
-		struct GetInotify {
-			constexpr int operator()(const Directory &d) const noexcept {
-				return d.watch_descriptor;
-			}
-		};
+	protected:
+		// virtual methods from InotifyWatch
+		void OnInotify(unsigned mask, const char *name) noexcept override;
 	};
 
 	Directory root;
-
-	/**
-	 * Map inotify watch descriptors to #Directory.
-	 */
-	IntrusiveHashSet<Directory, 256,
-			 IntrusiveHashSetOperators<Directory, Directory::GetInotify,
-						   std::hash<int>,
-						   std::equal_to<int>>> watch_descriptor_map;
 
 public:
 	TreeWatch(EventLoop &event_loop,
 		  FileDescriptor directory_fd, const char *base_path);
 
 	auto &GetEventLoop() const noexcept {
-		return inotify_event.GetEventLoop();
+		return inotify_manager.GetEventLoop();
 	}
 
 	void Add(const char *relative_path);
@@ -77,9 +66,6 @@ public:
 private:
 	Directory &MakeChild(Directory &parent, std::string_view name,
 			     bool persist, bool all) noexcept;
-
-	void AddWatch(Directory &directory);
-	void RemoveWatch(Directory &directory) noexcept;
 
 	void ScanDirectory(Directory &directory);
 
@@ -98,9 +84,4 @@ protected:
 	virtual void OnDirectoryCreated(const std::string &relative_path,
 					FileDescriptor directory_fd) noexcept = 0;
 	virtual void OnDirectoryDeleted(const std::string &relative_path) noexcept = 0;
-
-private:
-	/* virtual methods from class InotifyHandler */
-	void OnInotify(int wd, unsigned mask, const char *name) override;
-	void OnInotifyError(std::exception_ptr error) noexcept override;
 };
