@@ -1,6 +1,6 @@
 cm4all-spawn (0.20) unstable; urgency=low
 
-  * 
+  * require Meson 1.2
 
  --   
 
