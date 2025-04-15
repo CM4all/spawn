@@ -1,5 +1,6 @@
 cm4all-spawn (0.20) unstable; urgency=low
 
+  * switch to C++23
   * require Meson 1.2
 
  --   
