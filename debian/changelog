@@ -1,5 +1,6 @@
 cm4all-spawn (0.20) unstable; urgency=low
 
+  * reaper: read "pids.forks"
   * switch to C++23
   * require Meson 1.2
 

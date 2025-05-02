@@ -72,6 +72,9 @@ CollectCgroupStats(const char *suffix,
 	if (u.have_pids_peak)
 		p = fmt::format_to(p, " procs={}", u.pids_peak);
 
+	if (u.have_pids_forks)
+		p = fmt::format_to(p, " forks={}", u.pids_forks);
+
 	if (u.have_pids_events_max && u.pids_events_max > 0)
 		p = fmt::format_to(p, " procs_rejected={}", u.pids_events_max);
 

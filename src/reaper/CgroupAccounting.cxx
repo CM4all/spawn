@@ -95,6 +95,16 @@ ReadCgroupResourceUsage(FileDescriptor cgroup_fd) noexcept
 	}
 
 	try {
+		WithSmallTextFile<64>(FileAt{cgroup_fd, "pids.forks"}, [&result](std::string_view contents){
+			if (auto value = ParseInteger<uint_least32_t>(StripRight(contents))) {
+				result.pids_forks = *value;
+				result.have_pids_forks = true;
+			}
+		});
+	} catch (...) {
+	}
+
+	try {
 		for (const std::string_view line : IterableSmallTextFile<4096>{FileAt{cgroup_fd, "pids.events"}}) {
 			const auto [name, value_s] = Split(line, ' ');
 

@@ -94,6 +94,10 @@ Push(lua_State *L, Lua::AutoCloseList &auto_close,
 		SetField(L, RelativeStackIndex{-1}, "pids_peak",
 			 (lua_Integer)usage.pids_peak);
 
+	if (usage.have_pids_forks)
+		SetField(L, RelativeStackIndex{-1}, "pids_forks",
+			 (lua_Integer)usage.pids_forks);
+
 	if (usage.have_pids_events_max)
 		SetField(L, RelativeStackIndex{-1}, "pids_events_max",
 			 (lua_Integer)usage.pids_events_max);
