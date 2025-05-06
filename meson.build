@@ -121,6 +121,7 @@ libcommon_require_sodium = get_option('sodium')
 libcommon_enable_libsystemd = libsystemd.found()
 
 subdir('libcommon/src/util')
+subdir('libcommon/src/time')
 subdir('libcommon/src/lib/cap')
 subdir('libcommon/src/lib/fmt')
 subdir('libcommon/src/lib/sodium')
@@ -206,6 +207,7 @@ executable('cm4all-spawn-reaper',
     pg_dep,
     lua_sodium_dep,
     util_dep,
+    time_dep,
     fmt_dep,
   ],
   install: true,

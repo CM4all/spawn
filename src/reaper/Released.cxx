@@ -6,6 +6,9 @@
 #include "Scopes.hxx"
 #include "CgroupAccounting.hxx"
 #include "LAccounting.hxx"
+#include "time/ISO8601.hxx"
+#include "time/StatxCast.hxx"
+#include "util/StringBuffer.hxx"
 #include "util/StringCompare.hxx"
 
 #include <fmt/format.h>
@@ -14,6 +17,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/stat.h>
 
 using std::string_view_literals::operator""sv;
 
@@ -31,9 +35,13 @@ GetManagedSuffix(const char *path)
 
 static void
 CollectCgroupStats(const char *suffix,
+		   const std::chrono::system_clock::time_point btime,
 		   const CgroupResourceUsage &u)
 {
 	char buffer[4096], *p = buffer;
+
+	if (btime != std::chrono::system_clock::time_point{})
+		p = fmt::format_to(p, " since={}"sv, FormatISO8601(btime).c_str());
 
 	if (u.cpu.user.count() >= 0 || u.cpu.system.count() >= 0) {
 		const auto user = std::max(u.cpu.user.count(), 0.);
@@ -106,12 +114,23 @@ Instance::OnCgroupEmpty(const char *path) noexcept
 	UniqueFileDescriptor cgroup_fd;
 	(void)cgroup_fd.Open(root_cgroup, path + 1, O_DIRECTORY|O_RDONLY);
 
+	std::chrono::system_clock::time_point btime;
+
+	if (cgroup_fd.IsDefined()) {
+		struct statx stx;
+		if (statx(cgroup_fd.Get(), "", AT_EMPTY_PATH|AT_STATX_FORCE_SYNC,
+			  STATX_BTIME, &stx) == 0) {
+			if (stx.stx_mask & STATX_BTIME)
+				btime = ToSystemTimePoint(stx.stx_btime);
+		}
+	}
+
 	// TODO read resource usage right before the cgroup actually gets deleted
 	const auto u = cgroup_fd.IsDefined()
 		? ReadCgroupResourceUsage(cgroup_fd)
 		: CgroupResourceUsage{};
 
-	CollectCgroupStats(suffix, u);
+	CollectCgroupStats(suffix, btime, u);
 
 	if (lua_accounting)
 		lua_accounting->InvokeCgroupReleased(std::move(cgroup_fd), path, u);
