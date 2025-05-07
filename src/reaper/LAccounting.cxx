@@ -6,6 +6,7 @@
 #include "CgroupAccounting.hxx"
 #include "lua/Assert.hxx"
 #include "lua/AutoCloseList.hxx"
+#include "lua/Chrono.hxx"
 #include "lua/CoRunner.hxx"
 #include "lua/Resume.hxx"
 #include "lua/io/CgroupInfo.hxx"
@@ -39,6 +40,7 @@ public:
 	void Start(const Lua::Value &handler,
 		   UniqueFileDescriptor &&cgroup_fd,
 		   const char *relative_path,
+		   std::chrono::system_clock::time_point btime,
 		   const CgroupResourceUsage &usage) noexcept;
 
 	/* virtual methods from class ResumeListener */
@@ -56,7 +58,9 @@ Push(lua_State *L, CgroupCpuStat::Duration d)
 static void
 Push(lua_State *L, Lua::AutoCloseList &auto_close,
      UniqueFileDescriptor &&cgroup_fd,
-     const char *relative_path, const CgroupResourceUsage &usage)
+     const char *relative_path,
+     const std::chrono::system_clock::time_point btime,
+     const CgroupResourceUsage &usage)
 {
 	const ScopeCheckStack check_stack{L, 1};
 
@@ -64,6 +68,9 @@ Push(lua_State *L, Lua::AutoCloseList &auto_close,
 
 	// inject more attributes into CgroupInfo's FenvCache
 	lua_getfenv(L, -1);
+
+	if (btime != std::chrono::system_clock::time_point{})
+		SetField(L, RelativeStackIndex{-1}, "btime", btime);
 
 	if (usage.cpu.total.count() >= 0)
 		SetField(L, RelativeStackIndex{-1}, "cpu_total", usage.cpu.total);
@@ -109,13 +116,14 @@ inline void
 LuaAccounting::Thread::Start(const Lua::Value &_handler,
 			     UniqueFileDescriptor &&cgroup_fd,
 			     const char *relative_path,
+			     const std::chrono::system_clock::time_point btime,
 			     const CgroupResourceUsage &usage) noexcept
 {
 	/* create a new thread for the handler coroutine */
 	const auto L = runner.CreateThread(*this);
 
 	_handler.Push(L);
-	Push(L, auto_close, std::move(cgroup_fd), relative_path, usage);
+	Push(L, auto_close, std::move(cgroup_fd), relative_path, btime, usage);
 	Resume(L, 1);
 }
 
@@ -147,9 +155,11 @@ LuaAccounting::~LuaAccounting() noexcept
 void
 LuaAccounting::InvokeCgroupReleased(UniqueFileDescriptor cgroup_fd,
 				    const char *relative_path,
+				    const std::chrono::system_clock::time_point btime,
 				    const CgroupResourceUsage &usage)
 {
 	auto *thread = new Thread(GetState());
 	threads.push_back(*thread);
-	thread->Start(*handler, std::move(cgroup_fd), relative_path, usage);
+	thread->Start(*handler, std::move(cgroup_fd), relative_path,
+		      btime, usage);
 }

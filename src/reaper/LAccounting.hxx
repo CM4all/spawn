@@ -9,6 +9,8 @@
 #include "lua/ValuePtr.hxx"
 #include "util/IntrusiveList.hxx"
 
+#include <chrono>
+
 class UniqueFileDescriptor;
 struct CgroupResourceUsage;
 
@@ -34,6 +36,7 @@ public:
 
 	void InvokeCgroupReleased(UniqueFileDescriptor cgroup_fd,
 				  const char *relative_path,
+				  std::chrono::system_clock::time_point btime,
 				  const CgroupResourceUsage &usage);
 
 private:

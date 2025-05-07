@@ -57,6 +57,10 @@ The following attributes of the ``cgroup`` parameter can be queried:
 * ``path``: the cgroup path as noted in :file:`/proc/self/cgroup`,
   e.g. :file:`/user.slice/user-1000.slice/session-42.scope`
 
+* ``btime``: The time the cgroup was created as `Lua timestamp
+  <https://www.lua.org/pil/22.1.html>`__; may be ``nil`` if the kernel
+  does not support ``btime`` on ``cgroupfs``.
+
 * ``xattr``: A table containing extended attributes of the control
   group.
 
