@@ -4,7 +4,7 @@ cm4all-spawn (0.21) unstable; urgency=low
   * reaper: log rates
   * reaper: log CPU usage with reduced precision
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Thu, 08 May 2025 14:12:31 +0200
 
 cm4all-spawn (0.20) unstable; urgency=low
 
