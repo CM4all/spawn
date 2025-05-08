@@ -61,6 +61,9 @@ The following attributes of the ``cgroup`` parameter can be queried:
   <https://www.lua.org/pil/22.1.html>`__; may be ``nil`` if the kernel
   does not support ``btime`` on ``cgroupfs``.
 
+* ``age``: The age of this cgroup in seconds.  Only available if
+  ``btime`` is.
+
 * ``xattr``: A table containing extended attributes of the control
   group.
 

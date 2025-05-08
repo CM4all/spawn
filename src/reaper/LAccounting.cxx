@@ -63,8 +63,10 @@ Push(lua_State *L, Lua::AutoCloseList &auto_close,
 	// inject more attributes into CgroupInfo's FenvCache
 	lua_getfenv(L, -1);
 
-	if (btime != std::chrono::system_clock::time_point{})
+	if (btime != std::chrono::system_clock::time_point{}) {
 		SetField(L, RelativeStackIndex{-1}, "btime", btime);
+		SetField(L, RelativeStackIndex{-1}, "age", std::chrono::system_clock::now() - btime);
+	}
 
 	if (usage.cpu.total.count() >= 0)
 		SetField(L, RelativeStackIndex{-1}, "cpu_total", usage.cpu.total);
