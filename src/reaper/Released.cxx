@@ -33,6 +33,38 @@ GetManagedSuffix(const char *path)
 	return nullptr;
 }
 
+static char *
+MaybeLogPercent(char *p,
+		std::chrono::duration<double> usage,
+		std::chrono::duration<double> age) noexcept
+{
+	if (age.count() > 0) {
+		unsigned percent = static_cast<unsigned>(100 * usage / age);
+		if (percent > 0)
+			p = fmt::format_to(p, "[{}%]", percent);
+	}
+
+	return p;
+}
+
+static char *
+MaybeLogRate(char *p, uint_least32_t n,
+	     std::chrono::duration<double> age) noexcept
+{
+	if (age.count() > 0) {
+		double rate = n / age.count();
+
+		if (rate >= 0.01) {
+			if (rate >= 1)
+				p = fmt::format_to(p, "[{:.0f}/s]", rate);
+			else
+				p = fmt::format_to(p, "[{:.1f}/m]", rate * 60);
+		}
+	}
+
+	return p;
+}
+
 static void
 CollectCgroupStats(const char *suffix,
 		   const std::chrono::system_clock::time_point btime,
@@ -40,8 +72,13 @@ CollectCgroupStats(const char *suffix,
 {
 	char buffer[4096], *p = buffer;
 
-	if (btime != std::chrono::system_clock::time_point{})
+	using Age = std::chrono::duration<double>;
+	Age age{};
+	if (btime != std::chrono::system_clock::time_point{}) {
 		p = fmt::format_to(p, " since={}"sv, FormatISO8601(btime).c_str());
+
+		age = std::chrono::duration_cast<Age>(std::chrono::system_clock::now() - btime);
+	}
 
 	if (u.cpu.user.count() >= 0 || u.cpu.system.count() >= 0) {
 		const auto user = std::max(u.cpu.user, CgroupCpuStat::Duration{});
@@ -52,8 +89,10 @@ CollectCgroupStats(const char *suffix,
 
 		p = fmt::format_to(p, " cpu={}s/{}s/{}s",
 				   total.count(), user.count(), system.count());
+		p = MaybeLogPercent(p, total, age);
 	} else if (u.cpu.total.count() >= 0) {
 		p = fmt::format_to(p, " cpu={}s", u.cpu.total.count());
+		p = MaybeLogPercent(p, u.cpu.total, age);
 	}
 
 	if (u.have_memory_peak) {
@@ -81,8 +120,10 @@ CollectCgroupStats(const char *suffix,
 	if (u.have_pids_peak)
 		p = fmt::format_to(p, " procs={}", u.pids_peak);
 
-	if (u.have_pids_forks)
+	if (u.have_pids_forks) {
 		p = fmt::format_to(p, " forks={}", u.pids_forks);
+		p = MaybeLogRate(p, u.pids_forks, age);
+	}
 
 	if (u.have_pids_events_max && u.pids_events_max > 0)
 		p = fmt::format_to(p, " procs_rejected={}", u.pids_events_max);
