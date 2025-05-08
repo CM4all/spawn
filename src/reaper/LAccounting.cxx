@@ -50,12 +50,6 @@ public:
 };
 
 static void
-Push(lua_State *L, CgroupCpuStat::Duration d)
-{
-	Push(L, std::chrono::duration_cast<std::chrono::duration<double>>(d).count());
-}
-
-static void
 Push(lua_State *L, Lua::AutoCloseList &auto_close,
      UniqueFileDescriptor &&cgroup_fd,
      const char *relative_path,
