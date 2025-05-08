@@ -87,11 +87,11 @@ CollectCgroupStats(const char *suffix,
 			? u.cpu.total
 			: user + system;
 
-		p = fmt::format_to(p, " cpu={}s/{}s/{}s",
+		p = fmt::format_to(p, " cpu={:.1f}s/{:.1f}s/{:.1f}s",
 				   total.count(), user.count(), system.count());
 		p = MaybeLogPercent(p, total, age);
 	} else if (u.cpu.total.count() >= 0) {
-		p = fmt::format_to(p, " cpu={}s", u.cpu.total.count());
+		p = fmt::format_to(p, " cpu={:.1f}s", u.cpu.total.count());
 		p = MaybeLogPercent(p, u.cpu.total, age);
 	}
 
