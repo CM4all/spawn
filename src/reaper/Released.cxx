@@ -44,13 +44,14 @@ CollectCgroupStats(const char *suffix,
 		p = fmt::format_to(p, " since={}"sv, FormatISO8601(btime).c_str());
 
 	if (u.cpu.user.count() >= 0 || u.cpu.system.count() >= 0) {
-		const auto user = std::max(u.cpu.user.count(), 0.);
-		const auto system = std::max(u.cpu.system.count(), 0.);
+		const auto user = std::max(u.cpu.user, CgroupCpuStat::Duration{});
+		const auto system = std::max(u.cpu.system, CgroupCpuStat::Duration{});
 		const auto total = u.cpu.total.count() >= 0
-			? u.cpu.total.count()
+			? u.cpu.total
 			: user + system;
 
-		p = fmt::format_to(p, " cpu={}s/{}s/{}s", total, user, system);
+		p = fmt::format_to(p, " cpu={}s/{}s/{}s",
+				   total.count(), user.count(), system.count());
 	} else if (u.cpu.total.count() >= 0) {
 		p = fmt::format_to(p, " cpu={}s", u.cpu.total.count());
 	}
