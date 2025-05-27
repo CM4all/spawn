@@ -2,8 +2,6 @@
 // Copyright CM4all GmbH
 // author: Max Kellermann <mk@cm4all.com>
 
-#include "util/Compiler.h"
-
 #include <pwd.h>
 #include <nss.h>
 #include <stddef.h>
