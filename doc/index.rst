@@ -181,7 +181,4 @@ live.
 NSS-LogName
 -----------
 
-The Debian package :file:`libnss-cm4all-logname` contains a glibc NSS
-module which pretends there is a :file:`/etc/passwd` entry for the
-current uid named ``$LOGNAME``.  This should be installed in
-containers spawned by the process spawner.
+The NSS module was moved to https://github.com/CM4all/nss_logname

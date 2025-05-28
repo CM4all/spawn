@@ -51,13 +51,6 @@ Description: systemd slice for CM4all services
  This package provides a systemd slice which can be used by CM4all
  services.
 
-Package: libnss-cm4all-logname
-Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}
-Description: NSS module which synthesizes a passwd entry from $LOGNAME
- This Glibc NSS module pretends there is a passwd entry for the
- current uid named $LOGNAME.
-
 Package: cm4all-spawn-doc
 Section: doc
 Architecture: all
