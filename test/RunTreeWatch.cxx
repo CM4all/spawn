@@ -4,10 +4,11 @@
 
 #include "reaper/TreeWatch.hxx"
 #include "event/Loop.hxx"
-#include "util/ConstBuffer.hxx"
 #include "util/PrintException.hxx"
 
 #include <fmt/format.h>
+
+#include <span>
 
 #include <fcntl.h> // for AT_FDCWD
 #include <stdlib.h>
@@ -33,12 +34,13 @@ struct Usage {};
 int
 main(int argc, char **argv)
 try {
-	ConstBuffer<const char *> args(argv + 1, argc - 1);
+	std::span<const char *const> args{argv + 1, static_cast<std::size_t>(argc - 1)};
 
-	if (args.size < 2)
+	if (args.size() < 2)
 		throw Usage();
 
-	const char *base_path = args.shift();
+	const char *base_path = args.front();
+	args = args.subspan(1);
 
 	EventLoop event_loop;
 	MyTreeWatch tw(event_loop, base_path);
