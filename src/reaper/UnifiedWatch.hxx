@@ -18,7 +18,7 @@ class UnifiedCgroupWatch final : TreeWatch {
 
 	class Group;
 
-	std::map<std::string, Group> groups;
+	std::map<std::string, Group, std::less<>> groups;
 
 	bool in_add = false;
 
