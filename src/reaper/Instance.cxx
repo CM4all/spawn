@@ -94,6 +94,7 @@ Instance::OnExit() noexcept
 	lua_accounting.reset();
 
 	unified_cgroup_watch.reset();
+	defer_cgroup_delete.Cancel();
 }
 
 void
