@@ -101,26 +101,37 @@ UnifiedCgroupWatch::OnGroupEmpty(Group &group) noexcept
 }
 
 void
+UnifiedCgroupWatch::InsertGroup(const std::string_view relative_path,
+				FileDescriptor directory_fd,
+				bool discard)
+{
+	auto fd = OpenReadOnly(directory_fd, "cgroup.events");
+	if (discard)
+		/* discard the initial event by reading from the
+		   "cgroup.events" file */
+		IsPopulated(fd);
+
+	groups.emplace(std::piecewise_construct,
+		       std::forward_as_tuple(relative_path),
+		       std::forward_as_tuple(*this,
+					     relative_path,
+					     std::move(fd)));
+}
+
+void
 UnifiedCgroupWatch::OnDirectoryCreated(const std::string_view relative_path,
 				       FileDescriptor directory_fd) noexcept
 {
 	try {
-		auto fd = OpenReadOnly(directory_fd, "cgroup.events");
-		if (!in_add)
-			/* if this new cgroup was just created, call
-			   IsPopulated() to discard the initial event;
-			   we don't want to auto-delete if it it's
-			   empty, because we already know it's empty;
-			   delete empty cgroups immediately only
-			   during the initial scan, i.e. from inside
-			   AddCgroup() */
-			IsPopulated(fd);
+		/* if this new cgroup was just created, call
+		   IsPopulated() to discard the initial event; we
+		   don't want to auto-delete if it it's empty, because
+		   we already know it's empty; delete empty cgroups
+		   immediately only during the initial scan, i.e. from
+		   inside AddCgroup() */
+		const bool discard = !in_add;
 
-		groups.emplace(std::piecewise_construct,
-			       std::forward_as_tuple(relative_path),
-			       std::forward_as_tuple(*this,
-						     relative_path,
-						     std::move(fd)));
+		InsertGroup(relative_path, directory_fd, discard);
 	} catch (...) {
 		PrintException(std::current_exception());
 	}

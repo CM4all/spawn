@@ -30,6 +30,18 @@ public:
 	void AddCgroup(std::string_view relative_path);
 
 private:
+	/**
+	 * Insert a new #Group instance into the #groups map.
+	 *
+	 * Throws on error.
+	 *
+	 * @param directory_fd the cgorup directory #FileDescriptor
+	 * @param discard true to discard the initial event
+	 */
+	void InsertGroup(const std::string_view relative_path,
+			 FileDescriptor directory_fd,
+			 bool discard);
+
 	void OnGroupEmpty(Group &group) noexcept;
 
 protected:
