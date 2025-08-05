@@ -38,7 +38,7 @@ class UnifiedCgroupWatch::Group {
 
 public:
 	Group(UnifiedCgroupWatch &_parent,
-	      const std::string &_relative_path,
+	      std::string_view _relative_path,
 	      UniqueFileDescriptor &&_fd) noexcept;
 
 	const std::string &GetRelativePath() noexcept {
@@ -49,8 +49,9 @@ private:
 	void EventCallback(unsigned events) noexcept;
 };
 
+inline
 UnifiedCgroupWatch::Group::Group(UnifiedCgroupWatch &_parent,
-				 const std::string &_relative_path,
+				 std::string_view _relative_path,
 				 UniqueFileDescriptor &&_fd) noexcept
 	:parent(_parent),
 	 relative_path(_relative_path),
