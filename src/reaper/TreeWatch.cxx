@@ -117,6 +117,27 @@ TreeWatch::Add(std::string_view relative_path)
 	}
 }
 
+FileDescriptor
+TreeWatch::Find(std::string_view relative_path) const noexcept
+{
+	assert(root.IsOpen());
+
+	const Directory *directory = &root;
+
+	for (const auto name : IterableSplitString(relative_path, '/')) {
+		if (name.empty())
+			continue;
+
+		const auto i = directory->children.find(name);
+		if (i == directory->children.end())
+			return FileDescriptor::Undefined();
+
+		directory = &i->second;
+	}
+
+	return directory->fd;
+}
+
 TreeWatch::Directory &
 TreeWatch::MakeChild(Directory &parent, std::string_view name,
 		     bool persist, bool all) noexcept

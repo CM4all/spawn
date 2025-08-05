@@ -90,6 +90,18 @@ UnifiedCgroupWatch::AddCgroup(std::string_view relative_path)
 }
 
 void
+UnifiedCgroupWatch::ReAddCgroup(std::string_view relative_path) noexcept
+{
+	if (const auto fd = TreeWatch::Find(relative_path); fd.IsDefined()) {
+		try {
+			InsertGroup(relative_path, fd, false);
+		} catch (...) {
+			PrintException(std::current_exception());
+		}
+	}
+}
+
+void
 UnifiedCgroupWatch::OnGroupEmpty(Group &group) noexcept
 {
 	callback(("/" + group.GetRelativePath()).c_str());

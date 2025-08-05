@@ -1,5 +1,6 @@
 cm4all-spawn (0.22) unstable; urgency=low
 
+  * repaer: rearm watch after EBUSY
   * nss: moved to separate repository
 
  --   

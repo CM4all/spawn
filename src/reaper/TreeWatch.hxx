@@ -63,6 +63,14 @@ public:
 
 	void Add(std::string_view relative_path);
 
+	/**
+	 * Look up a directory that is being watched.  Returns the
+	 * directory's #FileDescriptor if found, or else an undefined
+	 * #FileDescriptor.
+	 */
+	[[gnu::pure]]
+	FileDescriptor Find(std::string_view relative_path) const noexcept;
+
 private:
 	Directory &MakeChild(Directory &parent, std::string_view name,
 			     bool persist, bool all) noexcept;

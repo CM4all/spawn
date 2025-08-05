@@ -4,6 +4,7 @@
 
 #include "Instance.hxx"
 #include "Scopes.hxx"
+#include "UnifiedWatch.hxx"
 #include "CgroupAccounting.hxx"
 #include "LAccounting.hxx"
 #include "time/ISO8601.hxx"
@@ -133,7 +134,7 @@ CollectCgroupStats(const char *suffix,
 			   std::string_view{buffer, p});
 }
 
-static void
+static bool
 DestroyCgroup(const FileDescriptor root_cgroup, const char *relative_path) noexcept
 {
 	assert(*relative_path == '/');
@@ -142,10 +143,18 @@ DestroyCgroup(const FileDescriptor root_cgroup, const char *relative_path) noexc
 	if (unlinkat(root_cgroup.Get(), relative_path + 1,
 		     AT_REMOVEDIR) < 0) {
 		const int e = errno;
+		if (e == EBUSY)
+			/* meanwhile, a new process has been
+			   spawned/moved into the cgroup; re-add so we
+			   can receive events when it's empty again */
+			return false;
+
 		if (e != ENOENT)
 			fmt::print(stderr, "Failed to delete '{}': {}\n",
 				   relative_path, strerror(e));
 	}
+
+	return true;
 }
 
 void
@@ -196,7 +205,9 @@ Instance::OnDeferredCgroupDelete() noexcept
 	/* delete the sorted set in reverse order */
 	for (auto i = cgroup_delete_queue.rbegin();
 	     i != cgroup_delete_queue.rend(); ++i)
-		DestroyCgroup(root_cgroup, i->c_str());
+		if (!DestroyCgroup(root_cgroup, i->c_str()))
+			/* the substr(1) strips the leading slash */
+			unified_cgroup_watch->ReAddCgroup(std::string_view{*i}.substr(1));
 
 	cgroup_delete_queue.clear();
 }

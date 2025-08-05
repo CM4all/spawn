@@ -29,6 +29,14 @@ public:
 
 	void AddCgroup(std::string_view relative_path);
 
+	/**
+	 * Re-add a cgroup that is still registered in #TreeWatch.
+	 * This can be used after the rmdir() has failed with EBUSY
+	 * because somebody has spawned a new process into the cgroup
+	 * before we had a chance to reap it.
+	 */
+	void ReAddCgroup(std::string_view relative_path) noexcept;
+
 private:
 	/**
 	 * Insert a new #Group instance into the #groups map.
