@@ -61,7 +61,7 @@ public:
 		return inotify_manager.GetEventLoop();
 	}
 
-	void Add(const char *relative_path);
+	void Add(std::string_view relative_path);
 
 private:
 	Directory &MakeChild(Directory &parent, std::string_view name,

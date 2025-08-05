@@ -82,9 +82,8 @@ TreeWatch::TreeWatch(EventLoop &event_loop, FileDescriptor directory_fd,
 }
 
 void
-TreeWatch::Add(const char *relative_path)
+TreeWatch::Add(std::string_view relative_path)
 {
-	assert(relative_path != nullptr);
 	assert(root.IsOpen());
 
 	Directory *directory = &root;
