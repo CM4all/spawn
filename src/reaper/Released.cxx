@@ -140,10 +140,12 @@ DestroyCgroup(const FileDescriptor root_cgroup, const char *relative_path) noexc
 	assert(relative_path[1] != 0);
 
 	if (unlinkat(root_cgroup.Get(), relative_path + 1,
-		     AT_REMOVEDIR) < 0 &&
-	    errno != ENOENT)
-		fmt::print(stderr, "Failed to delete '{}': {}\n",
-			   relative_path, strerror(errno));
+		     AT_REMOVEDIR) < 0) {
+		const int e = errno;
+		if (e != ENOENT)
+			fmt::print(stderr, "Failed to delete '{}': {}\n",
+				   relative_path, strerror(e));
+	}
 }
 
 void
