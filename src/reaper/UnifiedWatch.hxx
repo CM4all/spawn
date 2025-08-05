@@ -27,7 +27,7 @@ public:
 			   Callback _callback);
 	~UnifiedCgroupWatch() noexcept;
 
-	void AddCgroup(const char *relative_path);
+	void AddCgroup(std::string_view relative_path);
 
 private:
 	void OnGroupEmpty(Group &group) noexcept;

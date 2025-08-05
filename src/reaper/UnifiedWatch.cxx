@@ -79,7 +79,7 @@ UnifiedCgroupWatch::UnifiedCgroupWatch(EventLoop &event_loop,
 UnifiedCgroupWatch::~UnifiedCgroupWatch() noexcept = default;
 
 void
-UnifiedCgroupWatch::AddCgroup(const char *relative_path)
+UnifiedCgroupWatch::AddCgroup(std::string_view relative_path)
 {
 	assert(!in_add);
 	in_add = true;
