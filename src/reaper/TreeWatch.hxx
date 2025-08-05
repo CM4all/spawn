@@ -81,7 +81,7 @@ private:
 				const char *name) noexcept;
 
 protected:
-	virtual void OnDirectoryCreated(const std::string &relative_path,
+	virtual void OnDirectoryCreated(std::string_view relative_path,
 					FileDescriptor directory_fd) noexcept = 0;
-	virtual void OnDirectoryDeleted(const std::string &relative_path) noexcept = 0;
+	virtual void OnDirectoryDeleted(std::string_view relative_path) noexcept = 0;
 };

@@ -101,7 +101,7 @@ UnifiedCgroupWatch::OnGroupEmpty(Group &group) noexcept
 }
 
 void
-UnifiedCgroupWatch::OnDirectoryCreated(const std::string &relative_path,
+UnifiedCgroupWatch::OnDirectoryCreated(const std::string_view relative_path,
 				       FileDescriptor directory_fd) noexcept
 {
 	try {
@@ -127,7 +127,7 @@ UnifiedCgroupWatch::OnDirectoryCreated(const std::string &relative_path,
 }
 
 void
-UnifiedCgroupWatch::OnDirectoryDeleted(const std::string &relative_path) noexcept
+UnifiedCgroupWatch::OnDirectoryDeleted(const std::string_view relative_path) noexcept
 {
 	auto i = groups.find(relative_path);
 	if (i == groups.end())

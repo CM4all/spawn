@@ -19,12 +19,12 @@ public:
 		:TreeWatch(event_loop, FileDescriptor{AT_FDCWD}, base_path) {}
 
 protected:
-	void OnDirectoryCreated(const std::string &relative_path,
+	void OnDirectoryCreated(std::string_view relative_path,
 				FileDescriptor) noexcept override {
 		fmt::print("+ {}\n", relative_path);
 	}
 
-	void OnDirectoryDeleted(const std::string &relative_path) noexcept override {
+	void OnDirectoryDeleted(std::string_view relative_path) noexcept override {
 		fmt::print("- {}\n", relative_path);
 	}
 };

@@ -33,7 +33,7 @@ private:
 	void OnGroupEmpty(Group &group) noexcept;
 
 protected:
-	void OnDirectoryCreated(const std::string &relative_path,
+	void OnDirectoryCreated(std::string_view relative_path,
 				FileDescriptor directory_fd) noexcept override;
-	void OnDirectoryDeleted(const std::string &relative_path) noexcept override;
+	void OnDirectoryDeleted(std::string_view relative_path) noexcept override;
 };
