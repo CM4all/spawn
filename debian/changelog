@@ -3,7 +3,7 @@ cm4all-spawn (0.22) unstable; urgency=low
   * repaer: rearm watch after EBUSY
   * nss: moved to separate repository
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Tue, 05 Aug 2025 18:01:44 +0200
 
 cm4all-spawn (0.21) unstable; urgency=low
 
