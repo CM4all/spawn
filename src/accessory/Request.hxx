@@ -5,13 +5,13 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
+#include <string_view>
 #include <span>
 
 namespace SpawnAccessory { enum class RequestCommand : uint16_t; }
 
 struct SpawnRequest {
-	std::string name;
+	std::string_view name;
 
 	bool ipc_namespace = false;
 	bool pid_namespace = false;

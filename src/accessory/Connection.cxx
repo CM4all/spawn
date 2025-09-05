@@ -54,7 +54,7 @@ SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
 	if (request.pid_namespace)
 		flags |= CLONE_NEWPID;
 
-	auto &ns = instance.GetNamespaces()[std::move(request.name)];
+	auto &ns = instance.GetNamespaces()[request.name];
 
 	StaticVector<uint32_t, 8> response_payload;
 	std::forward_list<UniqueFileDescriptor> response_fds;

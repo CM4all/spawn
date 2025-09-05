@@ -12,7 +12,7 @@
 
 using namespace SpawnAccessory;
 
-static std::string
+static std::string_view
 CheckNonEmptyASCII(std::string_view payload)
 {
 	if (payload.empty())
@@ -22,7 +22,7 @@ CheckNonEmptyASCII(std::string_view payload)
 		if ((signed char)ch < 0x20)
 			throw std::runtime_error("Malformed string");
 
-	return std::string{payload};
+	return payload;
 }
 
 void
