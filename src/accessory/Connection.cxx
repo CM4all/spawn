@@ -48,12 +48,6 @@ SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
 	if (request.name.empty())
 		throw std::runtime_error("No NAME");
 
-	int flags = 0;
-	if (request.ipc_namespace)
-		flags |= CLONE_NEWIPC;
-	if (request.pid_namespace)
-		flags |= CLONE_NEWPID;
-
 	auto &ns = instance.GetNamespaces()[request.name];
 
 	StaticVector<uint32_t, 8> response_payload;
@@ -65,12 +59,12 @@ SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
 	ScmRightsBuilder<8> srb(msg);
 
 	try {
-		if (flags & CLONE_NEWIPC) {
+		if (request.ipc_namespace) {
 			srb.push_back(ns.MakeIpc().Get());
 			response_payload.push_back(CLONE_NEWIPC);
 		}
 
-		if (flags & CLONE_NEWPID) {
+		if (request.pid_namespace) {
 			srb.push_back(ns.MakePid().Get());
 			response_payload.push_back(CLONE_NEWPID);
 		}
