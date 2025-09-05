@@ -69,6 +69,11 @@ SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
 			srb.push_back(ns.MakePid().Get());
 			response_payload.push_back(CLONE_NEWPID);
 		}
+
+		if (request.user_namespace) {
+			srb.push_back(ns.MakeUser(request.user_namespace_payload).Get());
+			response_payload.push_back(CLONE_NEWUSER);
+		}
 	} catch (...) {
 		PrintException(std::current_exception());
 		SendError(GetFullMessage(std::current_exception()));

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include <string_view>
 #include <span>
 
@@ -15,9 +16,11 @@ struct SpawnRequest {
 
 	bool ipc_namespace = false;
 	bool pid_namespace = false;
+	bool user_namespace = false;
+	std::string user_namespace_payload;
 
 	bool IsNamespace() const noexcept {
-		return ipc_namespace || pid_namespace;
+		return ipc_namespace || pid_namespace || user_namespace;
 	}
 
 	void Apply(SpawnAccessory::RequestCommand command,

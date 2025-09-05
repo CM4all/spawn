@@ -5,6 +5,7 @@
 #include "Request.hxx"
 #include "spawn/accessory/Protocol.hxx"
 #include "util/SpanCast.hxx"
+#include "util/StringSplit.hxx"
 
 #include <fmt/format.h>
 
@@ -60,6 +61,14 @@ SpawnRequest::Apply(RequestCommand command, std::span<const std::byte> payload)
 			throw std::runtime_error("Malformed PID_NAMESPACE");
 
 		pid_namespace = true;
+		break;
+
+	case RequestCommand::USER_NAMESPACE:
+		if (user_namespace)
+			throw std::runtime_error("Duplicate USER_NAMESPACE");
+
+		user_namespace = true;
+		user_namespace_payload = std::string{ToStringView(payload)};
 		break;
 	}
 }

@@ -9,7 +9,10 @@
 #include "io/linux/ProcPid.hxx"
 #include "io/Pipe.hxx"
 #include "io/UniqueFileDescriptor.hxx"
+#include "io/WriteFile.hxx"
+#include "util/StringSplit.hxx"
 
+#include <cassert>
 #include <cstdint>
 
 #include <sched.h>
@@ -85,4 +88,36 @@ Namespace::MakePid()
 		kill(std::exchange(pid_init, 0), SIGTERM);
 		throw;
 	}
+}
+
+FileDescriptor
+Namespace::MakeUser(std::string_view payload)
+{
+	if (auto i = user_namespaces.find(payload); i != user_namespaces.end())
+		return i->second;
+
+	return WithPipeChild(CLONE_NEWUSER, [this, payload](FileDescriptor proc_pid) -> FileDescriptor {
+		UniqueFileDescriptor user_ns;
+		if (!user_ns.OpenReadOnly(proc_pid, "ns/user"))
+			throw MakeErrno("Failed to open /proc/PID/ns/user");
+
+		/* split payload into uid_map and gid_map */
+		const auto [uid_map, gid_map] = Split(payload, '\0');
+
+		if (!uid_map.empty()) {
+			const auto result = TryWriteExistingFile(proc_pid, "uid_map", uid_map);
+			if (result == WriteFileResult::ERROR)
+				throw MakeErrno("Failed to write uid_map");
+		}
+
+		if (!gid_map.empty()) {
+			const auto result = TryWriteExistingFile(proc_pid, "gid_map", gid_map);
+			if (result == WriteFileResult::ERROR)
+				throw MakeErrno("Failed to write gid_map");
+		}
+
+		auto [it, inserted] = user_namespaces.emplace(std::string{payload}, std::move(user_ns));
+		assert(inserted);
+		return it->second;
+	});
 }
