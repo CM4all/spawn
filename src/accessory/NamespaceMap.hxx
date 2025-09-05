@@ -10,7 +10,7 @@
 #include <map>
 
 class NamespaceMap {
-	std::map<std::string, Namespace> map;
+	std::map<std::string, Namespace, std::less<>> map;
 
 public:
 	template<typename N>
