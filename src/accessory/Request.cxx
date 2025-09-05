@@ -25,12 +25,6 @@ CheckNonEmptyASCII(std::string_view payload)
 	return std::string{payload};
 }
 
-static std::string
-CheckNonEmptyASCII(std::span<const std::byte> payload)
-{
-	return CheckNonEmptyASCII(ToStringView(payload));
-}
-
 void
 SpawnRequest::Apply(RequestCommand command, std::span<const std::byte> payload)
 {
@@ -45,7 +39,7 @@ SpawnRequest::Apply(RequestCommand command, std::span<const std::byte> payload)
 		if (!name.empty())
 			throw std::runtime_error("Duplicate NAME");
 
-		name = CheckNonEmptyASCII(payload);
+		name = CheckNonEmptyASCII(ToStringView(payload));
 		break;
 
 	case RequestCommand::IPC_NAMESPACE:
