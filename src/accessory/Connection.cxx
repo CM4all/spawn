@@ -9,6 +9,7 @@
 #include "spawn/accessory/Builder.hxx"
 #include "net/SendMessage.hxx"
 #include "net/ScmRightsBuilder.hxx"
+#include "io/Iovec.hxx"
 #include "system/Error.hxx"
 #include "util/CRC32.hxx"
 #include "util/PrintException.hxx"
@@ -76,23 +77,21 @@ SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
 
 	assert(!response_payload.empty());
 
-	const size_t response_payload_size = response_payload.size() * sizeof(response_payload.front());
-	v[2].iov_base = &response_payload.front();
-	v[2].iov_len = response_payload_size;
+	const auto response_payload_span = std::as_bytes(std::span{response_payload});
+
+	v[2] = MakeIovec(response_payload_span);
 
 	srb.Finish(msg);
 
-	const ResponseHeader rh{uint16_t(response_payload_size), ResponseCommand::NAMESPACE_HANDLES};
-	v[1].iov_base = const_cast<ResponseHeader *>(&rh);
-	v[1].iov_len = sizeof(rh);
+	const ResponseHeader rh{uint16_t(response_payload_span.size()), ResponseCommand::NAMESPACE_HANDLES};
+	v[1] = MakeIovec(ReferenceAsBytes(rh));
 
 	CRC32State crc;
-	crc.Update(std::as_bytes(std::span{&rh, 1}));
-	crc.Update(std::as_bytes(std::span{response_payload}));
+	crc.Update(ReferenceAsBytes(rh));
+	crc.Update(response_payload_span);
 
 	const DatagramHeader dh{MAGIC, crc.Finish()};
-	v[0].iov_base = const_cast<DatagramHeader *>(&dh);
-	v[0].iov_len = sizeof(dh);
+	v[0] = MakeIovec(ReferenceAsBytes(dh));
 
 	SendMessage(listener.GetSocket(), msg,
 		    MSG_DONTWAIT|MSG_NOSIGNAL);
