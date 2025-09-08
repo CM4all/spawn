@@ -3,6 +3,7 @@
 // author: Max Kellermann <max.kellermann@ionos.com>
 
 #include "Instance.hxx"
+#include "system/ProcessName.hxx"
 #include "system/SetupProcess.hxx"
 #include "util/PrintException.hxx"
 #include "config.h"
@@ -32,8 +33,7 @@ Run()
 int
 main(int argc, char **argv)
 try {
-	(void)argc;
-	(void)argv;
+	InitProcessName(argc, argv);
 
 	Run();
 
