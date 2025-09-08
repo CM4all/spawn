@@ -4,9 +4,13 @@
 
 #include "Namespace.hxx"
 #include "spawn/Init.hxx"
+#include "system/linux/clone3.h"
 #include "system/Error.hxx"
 #include "io/linux/ProcPid.hxx"
+#include "io/Pipe.hxx"
 #include "io/UniqueFileDescriptor.hxx"
+
+#include <cstdint>
 
 #include <sched.h>
 #include <signal.h>
@@ -17,17 +21,47 @@ Namespace::~Namespace() noexcept
 		kill(pid_init, SIGTERM);
 }
 
+/**
+ * Clone a child process with the specified flags, and invoke the
+ * specified function with a /proc/PID file descriptor.
+ */
+static auto
+WithPipeChild(uint_least64_t flags, std::invocable<FileDescriptor> auto f)
+{
+	auto [r, w] = CreatePipe();
+
+	const struct clone_args ca{
+		.flags = CLONE_CLEAR_SIGHAND|flags,
+		.exit_signal = SIGCHLD,
+	};
+
+	const pid_t pid = clone3(&ca, sizeof(ca));
+	if (pid < 0)
+		throw MakeErrno("clone3() failed");
+
+	if (pid == 0) {
+		w.Close();
+
+		std::byte buffer[1];
+		(void)r.Read(buffer);
+		_exit(0);
+	}
+
+	r.Close();
+
+	return f(OpenProcPid(pid));
+}
+
 FileDescriptor
 Namespace::MakeIpc()
 {
 	if (ipc_ns.IsDefined())
 		return ipc_ns;
 
-	if (unshare(CLONE_NEWIPC) < 0)
-		throw MakeErrno("unshare(CLONE_NEWIPC) failed");
-
-	if (!ipc_ns.OpenReadOnly("/proc/self/ns/ipc"))
-		throw MakeErrno("open(\"/proc/self/ns/ipc\") failed");
+	WithPipeChild(CLONE_NEWIPC, [this](FileDescriptor proc_pid){
+		if (!ipc_ns.OpenReadOnly(proc_pid, "ns/ipc"))
+			throw MakeErrno("Failed to open /proc/PID/ns/ipc");
+	});
 
 	return ipc_ns;
 }
@@ -43,7 +77,6 @@ Namespace::MakePid()
 	try {
 		const auto proc_pid = OpenProcPid(pid_init);
 
-		/* note: this requires Linux 4.12 */
 		if (!pid_ns.OpenReadOnly(proc_pid, "ns/pid"))
 			throw MakeErrno("Failed to open /proc/PID/ns/pid");
 
