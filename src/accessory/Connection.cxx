@@ -5,6 +5,7 @@
 #include "Connection.hxx"
 #include "Request.hxx"
 #include "Instance.hxx"
+#include "Namespace.hxx"
 #include "spawn/accessory/Protocol.hxx"
 #include "spawn/accessory/Builder.hxx"
 #include "net/SendMessage.hxx"
