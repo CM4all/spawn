@@ -19,5 +19,7 @@ public:
 	explicit NamespaceMap(EventLoop &_event_loop) noexcept;
 	~NamespaceMap() noexcept;
 
+	void Clear() noexcept;
+
 	Namespace &operator[](std::string_view name) noexcept;
 };

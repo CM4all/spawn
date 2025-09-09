@@ -10,6 +10,12 @@ NamespaceMap::NamespaceMap(EventLoop &_event_loop) noexcept
 
 NamespaceMap::~NamespaceMap() noexcept = default;
 
+void
+NamespaceMap::Clear() noexcept
+{
+	map.clear();
+}
+
 Namespace &
 NamespaceMap::operator[](std::string_view name) noexcept
 {

@@ -71,7 +71,9 @@ Instance::OnExit() noexcept
 
 	should_exit = true;
 
-	listeners.clear ();
+	listeners.clear();
+
+	namespaces.Clear();
 
 	zombie_reaper.Disable();
 	shutdown_listener.Disable();
