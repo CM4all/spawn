@@ -4,6 +4,7 @@ cm4all-spawn (0.23) unstable; urgency=low
   * accessory: support user namespaces
   * accessory: eliminate last recvmsg() system call on closed connection
   * accessory: reap zombie processes
+  * accessory: watch the PID namespace init process
 
  --   
 

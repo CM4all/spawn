@@ -24,7 +24,7 @@ class Instance final {
 
 	std::forward_list<SpawnListener> listeners;
 
-	NamespaceMap namespaces;
+	NamespaceMap namespaces{event_loop};
 
 public:
 	Instance();
