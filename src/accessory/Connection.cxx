@@ -165,8 +165,8 @@ SpawnConnection::OnUdpHangup()
 }
 
 void
-SpawnConnection::OnUdpError(std::exception_ptr ep) noexcept
+SpawnConnection::OnUdpError(std::exception_ptr &&error) noexcept
 {
-	PrintException(ep);
+	PrintException(std::move(error));
 	delete this;
 }

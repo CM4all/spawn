@@ -39,5 +39,5 @@ private:
 			   std::span<UniqueFileDescriptor> fds,
 			   SocketAddress address, int uid) override;
 	bool OnUdpHangup() override;
-	void OnUdpError(std::exception_ptr ep) noexcept override;
+	void OnUdpError(std::exception_ptr &&error) noexcept override;
 };
