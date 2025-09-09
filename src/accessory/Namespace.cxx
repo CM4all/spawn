@@ -25,8 +25,9 @@
 
 using std::string_view_literals::operator""sv;
 
-Namespace::Namespace(EventLoop &event_loop) noexcept
-	:pid_init(event_loop, BIND_THIS_METHOD(OnPidfdReady))
+Namespace::Namespace(EventLoop &event_loop, std::string_view _name) noexcept
+	:name(_name),
+	 pid_init(event_loop, BIND_THIS_METHOD(OnPidfdReady))
 {
 }
 

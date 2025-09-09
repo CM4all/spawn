@@ -6,13 +6,16 @@
 
 #include "event/PipeEvent.hxx"
 #include "io/UniqueFileDescriptor.hxx"
+#include "util/IntrusiveHashSet.hxx"
 
 #include <map>
 #include <string>
 
 #include <sys/types.h>
 
-class Namespace {
+class Namespace : public IntrusiveHashSetHook<> {
+	const std::string name;
+
 	UniqueFileDescriptor ipc_ns;
 	UniqueFileDescriptor pid_ns;
 	std::map<std::string, UniqueFileDescriptor, std::less<>> user_namespaces;
@@ -23,8 +26,12 @@ class Namespace {
 	PipeEvent pid_init;
 
 public:
-	explicit Namespace(EventLoop &event_loop) noexcept;
+	Namespace(EventLoop &event_loop, std::string_view _name) noexcept;
 	~Namespace() noexcept;
+
+	std::string_view GetName() const noexcept {
+		return name;
+	}
 
 	FileDescriptor MakeIpc();
 	FileDescriptor MakePid();
