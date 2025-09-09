@@ -73,6 +73,7 @@ Instance::OnExit() noexcept
 
 	listeners.clear ();
 
+	zombie_reaper.Disable();
 	shutdown_listener.Disable();
 	sighup_event.Disable();
 }

@@ -6,6 +6,7 @@
 
 #include "Listener.hxx"
 #include "NamespaceMap.hxx"
+#include "spawn/ZombieReaper.hxx"
 #include "event/Loop.hxx"
 #include "event/ShutdownListener.hxx"
 #include "event/SignalEvent.hxx"
@@ -19,6 +20,7 @@ class Instance final {
 
 	ShutdownListener shutdown_listener;
 	SignalEvent sighup_event;
+	ZombieReaper zombie_reaper{event_loop};
 
 	std::forward_list<SpawnListener> listeners;
 
