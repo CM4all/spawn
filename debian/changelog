@@ -2,6 +2,7 @@ cm4all-spawn (0.23) unstable; urgency=low
 
   * accessory: rename the PID namespace init process to "init"
   * accessory: support user namespaces
+  * accessory: eliminate last recvmsg() system call on closed connection
 
  --   
 

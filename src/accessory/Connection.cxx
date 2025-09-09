@@ -157,6 +157,13 @@ try {
 	return false;
 }
 
+bool
+SpawnConnection::OnUdpHangup()
+{
+	delete this;
+	return false;
+}
+
 void
 SpawnConnection::OnUdpError(std::exception_ptr ep) noexcept
 {
