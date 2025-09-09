@@ -7,7 +7,7 @@ cm4all-spawn (0.23) unstable; urgency=low
   * accessory: watch the PID namespace init process
   * accessory: add command LEASE_PIPE
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Tue, 09 Sep 2025 19:23:50 +0200
 
 cm4all-spawn (0.22) unstable; urgency=low
 
