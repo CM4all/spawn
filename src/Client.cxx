@@ -142,6 +142,9 @@ try {
 			int status;
 			wait(&status);
 		}
+
+	case ResponseCommand::LEASE_PIPE:
+		break;
 	}
 
 	return EXIT_SUCCESS;

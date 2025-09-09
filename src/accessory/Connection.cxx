@@ -52,28 +52,35 @@ SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
 
 	auto &ns = instance.GetNamespaces()[request.name];
 
-	StaticVector<uint32_t, 8> response_payload;
+	StaticVector<uint32_t, 8> ns_payload;
 	std::forward_list<UniqueFileDescriptor> response_fds;
 
-	struct iovec v[3];
+	struct iovec v[8];
 
 	MessageHeader msg = std::span<const struct iovec>{v};
 	ScmRightsBuilder<8> srb(msg);
 
+	UniqueFileDescriptor lease_pipe;
+
 	try {
 		if (request.ipc_namespace) {
 			srb.push_back(ns.MakeIpc().Get());
-			response_payload.push_back(CLONE_NEWIPC);
+			ns_payload.push_back(CLONE_NEWIPC);
 		}
 
 		if (request.pid_namespace) {
 			srb.push_back(ns.MakePid().Get());
-			response_payload.push_back(CLONE_NEWPID);
+			ns_payload.push_back(CLONE_NEWPID);
 		}
 
 		if (request.user_namespace) {
 			srb.push_back(ns.MakeUser(request.user_namespace_payload).Get());
-			response_payload.push_back(CLONE_NEWUSER);
+			ns_payload.push_back(CLONE_NEWUSER);
+		}
+
+		if (request.lease_pipe) {
+			lease_pipe = ns.MakeLeasePipe();
+			srb.push_back(lease_pipe.Get());
 		}
 	} catch (...) {
 		PrintException(std::current_exception());
@@ -81,32 +88,49 @@ SpawnConnection::OnMakeNamespaces(SpawnRequest &&request)
 		return;
 	}
 
-	assert(!response_payload.empty());
-
-	const auto response_payload_span = std::as_bytes(std::span{response_payload});
-
-	v[2] = MakeIovec(response_payload_span);
-
 	srb.Finish(msg);
 
-	const ResponseHeader rh{uint16_t(response_payload_span.size()), ResponseCommand::NAMESPACE_HANDLES};
-	v[1] = MakeIovec(ReferenceAsBytes(rh));
-
 	CRC32State crc;
-	crc.Update(ReferenceAsBytes(rh));
-	crc.Update(response_payload_span);
+
+	std::size_t iovec_index = 1;
+
+	ResponseHeader ns_header;
+
+	if (!ns_payload.empty()) {
+		const auto ns_payload_span = std::as_bytes(std::span{ns_payload});
+
+		ns_header = {
+			.size = static_cast<uint16_t>(ns_payload_span.size()),
+			.command = ResponseCommand::NAMESPACE_HANDLES,
+		};
+
+		v[iovec_index++] = MakeIovec(ReferenceAsBytes(ns_header));
+		crc.Update(ReferenceAsBytes(ns_header));
+
+		v[iovec_index++] = MakeIovec(ns_payload_span);
+		crc.Update(ns_payload_span);
+	}
+
+	if (request.lease_pipe) {
+		static constexpr ResponseHeader lease_header{0, ResponseCommand::LEASE_PIPE};
+		v[iovec_index++] = MakeIovec(ReferenceAsBytes(lease_header));
+		crc.Update(ReferenceAsBytes(lease_header));
+	}
 
 	const DatagramHeader dh{MAGIC, crc.Finish()};
 	v[0] = MakeIovec(ReferenceAsBytes(dh));
+
+	msg.msg_iovlen = iovec_index;
 
 	SendMessage(listener.GetSocket(), msg,
 		    MSG_DONTWAIT|MSG_NOSIGNAL);
 }
 
+
 inline void
 SpawnConnection::OnRequest(SpawnRequest &&request)
 {
-	if (request.IsNamespace())
+	if (request.IsNamespace() || request.IsLeasePipe())
 		OnMakeNamespaces(std::move(request));
 }
 

@@ -70,5 +70,15 @@ SpawnRequest::Apply(RequestCommand command, std::span<const std::byte> payload)
 		user_namespace = true;
 		user_namespace_payload = std::string{ToStringView(payload)};
 		break;
+
+	case RequestCommand::LEASE_PIPE:
+		if (lease_pipe)
+			throw std::runtime_error("Duplicate LEASE_PIPE");
+
+		if (!payload.empty())
+			throw std::runtime_error("Malformed LEASE_PIPE");
+
+		lease_pipe = true;
+		break;
 	}
 }

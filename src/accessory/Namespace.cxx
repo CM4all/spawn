@@ -11,6 +11,7 @@
 #include "io/Pipe.hxx"
 #include "io/UniqueFileDescriptor.hxx"
 #include "io/WriteFile.hxx"
+#include "util/DeleteDisposer.hxx"
 #include "util/StringSplit.hxx"
 
 #include <fmt/core.h>
@@ -24,10 +25,35 @@
 #include <sys/wait.h> // for waitid()
 
 using std::string_view_literals::operator""sv;
+using namespace std::chrono_literals;
+
+class Namespace::Lease final : public AutoUnlinkIntrusiveListHook {
+	Namespace &parent;
+	PipeEvent pipe_event;
+
+public:
+	Lease(Namespace &_parent, EventLoop &event_loop, UniqueFileDescriptor &&read_fd) noexcept
+		:parent(_parent),
+		 pipe_event(event_loop, BIND_THIS_METHOD(OnPipeReady))
+	{
+		pipe_event.Open(read_fd.Release());
+		pipe_event.ScheduleRead();
+	}
+
+	~Lease() noexcept {
+		pipe_event.Close();
+	}
+
+private:
+	void OnPipeReady([[maybe_unused]] unsigned events) noexcept {
+		parent.OnLeaseReleased(*this);
+	}
+};
 
 Namespace::Namespace(EventLoop &event_loop, std::string_view _name) noexcept
 	:name(_name),
-	 pid_init(event_loop, BIND_THIS_METHOD(OnPidfdReady))
+	 pid_init(event_loop, BIND_THIS_METHOD(OnPidfdReady)),
+	 expire_timer(event_loop, BIND_THIS_METHOD(OnExpireTimer))
 {
 }
 
@@ -35,6 +61,8 @@ Namespace::~Namespace() noexcept
 {
 	if (pid_init.IsDefined())
 		KillPidInit(SIGTERM);
+
+	leases.clear_and_dispose(DeleteDisposer{});
 }
 
 /**
@@ -71,6 +99,9 @@ WithPipeChild(uint_least64_t flags, std::invocable<FileDescriptor> auto f)
 FileDescriptor
 Namespace::MakeIpc()
 {
+	if (leases.empty())
+		expire_timer.Schedule(1min);
+
 	if (ipc_ns.IsDefined())
 		return ipc_ns;
 
@@ -85,6 +116,9 @@ Namespace::MakeIpc()
 FileDescriptor
 Namespace::MakePid()
 {
+	if (leases.empty())
+		expire_timer.Schedule(1min);
+
 	if (pid_ns.IsDefined())
 		return pid_ns;
 
@@ -115,6 +149,9 @@ Namespace::MakePid()
 FileDescriptor
 Namespace::MakeUser(std::string_view payload)
 {
+	if (leases.empty())
+		expire_timer.Schedule(1min);
+
 	if (auto i = user_namespaces.find(payload); i != user_namespaces.end())
 		return i->second;
 
@@ -214,4 +251,30 @@ Namespace::OnPidfdReady([[maybe_unused]] unsigned events) noexcept
 	}
 
 	OnPidInitExit(status);
+}
+
+UniqueFileDescriptor
+Namespace::MakeLeasePipe()
+{
+	auto [read_fd, write_fd] = CreatePipe();
+
+	leases.push_front(*new Lease(*this, expire_timer.GetEventLoop(), std::move(read_fd)));
+	expire_timer.Cancel();
+
+	return write_fd;
+}
+
+inline void
+Namespace::OnLeaseReleased(Lease &lease) noexcept
+{
+	leases.erase_and_dispose(leases.iterator_to(lease), DeleteDisposer{});
+
+	if (leases.empty())
+		expire_timer.Schedule(1min);
+}
+
+inline void
+Namespace::OnExpireTimer() noexcept
+{
+	delete this;
 }

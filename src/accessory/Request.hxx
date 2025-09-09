@@ -18,9 +18,14 @@ struct SpawnRequest {
 	bool pid_namespace = false;
 	bool user_namespace = false;
 	std::string user_namespace_payload;
+	bool lease_pipe = false;
 
 	bool IsNamespace() const noexcept {
 		return ipc_namespace || pid_namespace || user_namespace;
+	}
+
+	bool IsLeasePipe() const noexcept {
+		return lease_pipe;
 	}
 
 	void Apply(SpawnAccessory::RequestCommand command,
