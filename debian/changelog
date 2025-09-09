@@ -1,3 +1,9 @@
+cm4all-spawn (0.24) unstable; urgency=low
+
+  * 
+
+ --   
+
 cm4all-spawn (0.23) unstable; urgency=low
 
   * accessory: rename the PID namespace init process to "init"
