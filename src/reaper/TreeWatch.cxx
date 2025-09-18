@@ -6,6 +6,7 @@
 #include "lib/fmt/ExceptionFormatter.hxx"
 #include "system/Error.hxx"
 #include "io/DirectoryReader.hxx"
+#include "io/FileAt.hxx"
 #include "io/Open.hxx"
 #include "io/linux/ProcPath.hxx"
 #include "util/IterableSplitString.hxx"
@@ -20,7 +21,7 @@ TreeWatch::Directory::Directory(Root, TreeWatch &_tree_watch, FileDescriptor dir
 				const char *path)
 	:InotifyWatch(_tree_watch.inotify_manager), tree_watch(_tree_watch),
 	 parent(nullptr),
-	 fd(OpenPath(directory_fd, path, O_DIRECTORY)),
+	 fd(OpenPath({directory_fd, path}, O_DIRECTORY)),
 	 persist(true), all(false)
 {
 }
@@ -54,7 +55,7 @@ TreeWatch::Directory::Open(FileDescriptor parent_fd)
 	assert(!fd.IsDefined());
 	assert(!IsWatching());
 
-	fd = OpenPath(parent_fd, name.c_str(), O_DIRECTORY);
+	fd = OpenPath({parent_fd, name.c_str()}, O_DIRECTORY);
 }
 
 inline void
@@ -158,13 +159,13 @@ TreeWatch::ScanDirectory(Directory &directory)
 	assert(directory.IsWatching());
 	assert(directory.children.empty());
 
-	DirectoryReader reader(OpenDirectory(directory.fd, "."));
+	DirectoryReader reader(OpenDirectory({directory.fd, "."}));
 	while (const char *name = reader.Read()) {
 		if (*name == '.')
 			continue;
 
 		try {
-			auto fd = OpenPath(directory.fd, name, O_DIRECTORY);
+			auto fd = OpenPath({directory.fd, name}, O_DIRECTORY);
 
 			auto &child = MakeChild(directory, name, false, true);
 			if (child.IsOpen())

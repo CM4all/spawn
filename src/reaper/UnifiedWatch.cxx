@@ -4,6 +4,7 @@
 
 #include "UnifiedWatch.hxx"
 #include "event/SocketEvent.hxx"
+#include "io/FileAt.hxx"
 #include "io/Open.hxx"
 #include "io/UniqueFileDescriptor.hxx"
 #include "util/BindMethod.hxx"
@@ -117,7 +118,7 @@ UnifiedCgroupWatch::InsertGroup(const std::string_view relative_path,
 				FileDescriptor directory_fd,
 				bool discard)
 {
-	auto fd = OpenReadOnly(directory_fd, "cgroup.events");
+	auto fd = OpenReadOnly({directory_fd, "cgroup.events"});
 	if (discard)
 		/* discard the initial event by reading from the
 		   "cgroup.events" file */

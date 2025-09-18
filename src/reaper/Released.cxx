@@ -7,6 +7,7 @@
 #include "UnifiedWatch.hxx"
 #include "CgroupAccounting.hxx"
 #include "LAccounting.hxx"
+#include "io/FileAt.hxx"
 #include "time/ISO8601.hxx"
 #include "time/StatxCast.hxx"
 #include "util/StringBuffer.hxx"
@@ -165,7 +166,7 @@ Instance::OnCgroupEmpty(const char *path) noexcept
 		return;
 
 	UniqueFileDescriptor cgroup_fd;
-	(void)cgroup_fd.Open(root_cgroup, path + 1, O_DIRECTORY|O_RDONLY);
+	(void)cgroup_fd.Open({root_cgroup, path + 1}, O_DIRECTORY|O_RDONLY);
 
 	std::chrono::system_clock::time_point btime;
 

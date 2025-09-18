@@ -8,6 +8,7 @@
 #include "system/linux/PidFD.h"
 #include "system/Error.hxx"
 #include "io/linux/ProcPid.hxx"
+#include "io/FileAt.hxx"
 #include "io/Pipe.hxx"
 #include "io/UniqueFileDescriptor.hxx"
 #include "io/WriteFile.hxx"
@@ -106,7 +107,7 @@ Namespace::MakeIpc()
 		return ipc_ns;
 
 	WithPipeChild(CLONE_NEWIPC, [this](FileDescriptor proc_pid){
-		if (!ipc_ns.OpenReadOnly(proc_pid, "ns/ipc"))
+		if (!ipc_ns.OpenReadOnly({proc_pid, "ns/ipc"}))
 			throw MakeErrno("Failed to open /proc/PID/ns/ipc");
 	});
 
@@ -135,7 +136,7 @@ Namespace::MakePid()
 	try {
 		const auto proc_pid = OpenProcPid(pid);
 
-		if (!pid_ns.OpenReadOnly(proc_pid, "ns/pid"))
+		if (!pid_ns.OpenReadOnly({proc_pid, "ns/pid"}))
 			throw MakeErrno("Failed to open /proc/PID/ns/pid");
 
 		return pid_ns;
@@ -157,20 +158,20 @@ Namespace::MakeUser(std::string_view payload)
 
 	return WithPipeChild(CLONE_NEWUSER, [this, payload](FileDescriptor proc_pid) -> FileDescriptor {
 		UniqueFileDescriptor user_ns;
-		if (!user_ns.OpenReadOnly(proc_pid, "ns/user"))
+		if (!user_ns.OpenReadOnly({proc_pid, "ns/user"}))
 			throw MakeErrno("Failed to open /proc/PID/ns/user");
 
 		/* split payload into uid_map and gid_map */
 		const auto [uid_map, gid_map] = Split(payload, '\0');
 
 		if (!uid_map.empty()) {
-			const auto result = TryWriteExistingFile(proc_pid, "uid_map", uid_map);
+			const auto result = TryWriteExistingFile({proc_pid, "uid_map"}, uid_map);
 			if (result == WriteFileResult::ERROR)
 				throw MakeErrno("Failed to write uid_map");
 		}
 
 		if (!gid_map.empty()) {
-			const auto result = TryWriteExistingFile(proc_pid, "gid_map", gid_map);
+			const auto result = TryWriteExistingFile({proc_pid, "gid_map"}, gid_map);
 			if (result == WriteFileResult::ERROR)
 				throw MakeErrno("Failed to write gid_map");
 		}
