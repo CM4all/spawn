@@ -12,7 +12,6 @@ const char *const managed_scopes[] = {
 	"/system.slice/system-cm4all.slice/bp-spawn.scope/",
 	"/system.slice/system-cm4all.slice/lukko-spawn.scope/",
 	"/system.slice/system-cm4all.slice/workshop-spawn.scope/",
-	"/system.slice/system-cm4all.slice/openssh.scope/",
 
 	nullptr,
 };
