@@ -125,7 +125,7 @@ Namespace::MakePid()
 
 	assert(!pid_init.IsDefined());
 
-	const auto pid = UnshareForkSpawnInit();
+	const auto pid = UnshareForkSpawnInit(name.c_str());
 	const int pidfd = my_pidfd_open(pid, PIDFD_NONBLOCK);
 	if (pidfd < 0)
 		throw MakeErrno("pidfd_open() failed");
