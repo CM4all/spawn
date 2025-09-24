@@ -29,9 +29,6 @@ CheckNonEmptyASCII(std::string_view payload)
 void
 SpawnRequest::Apply(RequestCommand command, std::span<const std::byte> payload)
 {
-	fmt::print("Received cmd={} size={}\n",
-		   unsigned(command), payload.size());
-
 	switch (command) {
 	case RequestCommand::NOP:
 		break;

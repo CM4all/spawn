@@ -1,6 +1,6 @@
 cm4all-spawn (0.24) unstable; urgency=low
 
-  * 
+  * accessory: do not log each command
 
  --   
 
