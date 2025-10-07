@@ -13,7 +13,6 @@
 #include "util/PrintException.hxx"
 
 #include <assert.h>
-#include <fcntl.h>
 #include <sys/inotify.h>
 
 inline
@@ -21,7 +20,7 @@ TreeWatch::Directory::Directory(Root, TreeWatch &_tree_watch, FileDescriptor dir
 				const char *path)
 	:InotifyWatch(_tree_watch.inotify_manager), tree_watch(_tree_watch),
 	 parent(nullptr),
-	 fd(OpenPath({directory_fd, path}, O_DIRECTORY)),
+	 fd(OpenDirectoryPath({directory_fd, path})),
 	 persist(true), all(false)
 {
 }
@@ -55,7 +54,7 @@ TreeWatch::Directory::Open(FileDescriptor parent_fd)
 	assert(!fd.IsDefined());
 	assert(!IsWatching());
 
-	fd = OpenPath({parent_fd, name.c_str()}, O_DIRECTORY);
+	fd = OpenDirectoryPath({parent_fd, name.c_str()});
 }
 
 inline void
@@ -165,7 +164,7 @@ TreeWatch::ScanDirectory(Directory &directory)
 			continue;
 
 		try {
-			auto fd = OpenPath({directory.fd, name}, O_DIRECTORY);
+			auto fd = OpenDirectoryPath({directory.fd, name});
 
 			auto &child = MakeChild(directory, name, false, true);
 			if (child.IsOpen())
