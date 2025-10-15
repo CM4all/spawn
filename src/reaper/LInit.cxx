@@ -4,6 +4,7 @@
 
 #include "LInit.hxx"
 #include "config.h"
+#include "lua/Resume.hxx"
 #include "lua/io/XattrTable.hxx"
 #include "lua/io/CgroupInfo.hxx"
 
@@ -26,6 +27,7 @@ LuaInit([[maybe_unused]] EventLoop &event_loop)
 	Lua::State state{luaL_newstate()};
 
 	luaL_openlibs(state.get());
+	Lua::InitResume(state.get());
 
 #ifdef HAVE_LIBSODIUM
 	Lua::InitSodium(state.get());
