@@ -1,6 +1,6 @@
 cm4all-spawn (0.25) unstable; urgency=low
 
-  * 
+  * lua: support coroutine.yield(), coroutine.resume()
 
  --   
 
