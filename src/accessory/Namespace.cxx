@@ -262,7 +262,7 @@ Namespace::MakeLeasePipe()
 	leases.push_front(*new Lease(*this, expire_timer.GetEventLoop(), std::move(read_fd)));
 	expire_timer.Cancel();
 
-	return write_fd;
+	return std::move(write_fd);
 }
 
 inline void
