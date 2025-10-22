@@ -46,7 +46,7 @@ public:
 	/* virtual methods from class ResumeListener */
 	void OnLuaFinished(lua_State *L) noexcept override;
 	void OnLuaError(lua_State *L,
-			std::exception_ptr e) noexcept override;
+			std::exception_ptr &&error) noexcept override;
 };
 
 static void
@@ -131,10 +131,10 @@ LuaAccounting::Thread::OnLuaFinished(lua_State *) noexcept
 
 void
 LuaAccounting::Thread::OnLuaError(lua_State *,
-				  std::exception_ptr e) noexcept
+				  std::exception_ptr &&error) noexcept
 {
 	// TODO log more metadata?
-	PrintException(e);
+	PrintException(std::move(error));
 	delete this;
 }
 
