@@ -3,7 +3,7 @@ cm4all-spawn (0.25) unstable; urgency=low
   * lua: support coroutine.yield(), coroutine.resume()
   * pg: fix use-after-free bug
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Wed, 22 Oct 2025 11:15:52 +0200
 
 cm4all-spawn (0.24) unstable; urgency=low
 
