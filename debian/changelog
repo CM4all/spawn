@@ -1,6 +1,8 @@
 cm4all-spawn (0.26) unstable; urgency=low
 
-  * lua: new control_client library
+  * lua: new libraries:
+    - "control_client
+    - "socket"
 
  --   
 

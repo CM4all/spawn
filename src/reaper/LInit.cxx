@@ -9,6 +9,7 @@
 #include "lua/io/XattrTable.hxx"
 #include "lua/io/CgroupInfo.hxx"
 #include "lua/net/ControlClient.hxx"
+#include "lua/net/Socket.hxx"
 #include "lua/net/SocketAddress.hxx"
 
 #ifdef HAVE_PG
@@ -38,6 +39,7 @@ LuaInit([[maybe_unused]] EventLoop &event_loop)
 #endif
 
 	Lua::InitSocketAddress(L);
+	Lua::InitSocket(L);
 	Lua::InitControlClient(L);
 	RegisterLuaResolver(L);
 
