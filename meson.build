@@ -143,10 +143,12 @@ system_dep = declare_dependency(
 
 subdir('libcommon/src/event')
 subdir('libcommon/src/net')
+subdir('libcommon/src/net/control')
 subdir('libcommon/src/event/net')
 subdir('libcommon/src/spawn')
 subdir('libcommon/src/lua')
 subdir('libcommon/src/lua/io')
+subdir('libcommon/src/lua/net')
 
 libcommon_require_pg = get_option('pg')
 subdir('libcommon/src/pg')
@@ -196,6 +198,7 @@ executable('cm4all-spawn-reaper',
   'src/reaper/TreeWatch.cxx',
   'src/reaper/UnifiedWatch.cxx',
   'src/reaper/LInit.cxx',
+  'src/reaper/LResolver.cxx',
   'src/reaper/LAccounting.cxx',
   include_directories: inc,
   dependencies: [
@@ -205,6 +208,7 @@ executable('cm4all-spawn-reaper',
     io_dep,
     lua_dep,
     lua_io_dep,
+    lua_net_dep,
     pg_dep,
     lua_sodium_dep,
     util_dep,
