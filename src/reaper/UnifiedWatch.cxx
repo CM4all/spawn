@@ -3,7 +3,7 @@
 // author: Max Kellermann <max.kellermann@ionos.com>
 
 #include "UnifiedWatch.hxx"
-#include "event/SocketEvent.hxx"
+#include "event/PipeEvent.hxx"
 #include "io/FileAt.hxx"
 #include "io/Open.hxx"
 #include "io/UniqueFileDescriptor.hxx"
@@ -35,7 +35,7 @@ class UnifiedCgroupWatch::Group {
 
 	UniqueFileDescriptor fd;
 
-	SocketEvent event;
+	PipeEvent event;
 
 public:
 	Group(UnifiedCgroupWatch &_parent,
@@ -58,7 +58,7 @@ UnifiedCgroupWatch::Group::Group(UnifiedCgroupWatch &_parent,
 	 relative_path(_relative_path),
 	 fd(std::move(_fd)),
 	 event(parent.GetEventLoop(), BIND_THIS_METHOD(EventCallback),
-	       SocketDescriptor::FromFileDescriptor(fd))
+	       fd)
 {
 	event.Schedule(event.EXCEPTIONAL);
 }
