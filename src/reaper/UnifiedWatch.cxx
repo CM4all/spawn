@@ -11,6 +11,8 @@
 #include "util/PrintException.hxx"
 #include "util/ScopeExit.hxx"
 
+#include <algorithm> // for std::binary_search()
+
 #include <fcntl.h> // for AT_FDCWD
 #include <stdint.h>
 #include <stdio.h>
