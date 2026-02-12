@@ -10,25 +10,21 @@
 #include "util/BindMethod.hxx"
 #include "util/PrintException.hxx"
 #include "util/ScopeExit.hxx"
+#include "util/SpanCast.hxx"
 
 #include <algorithm> // for std::binary_search()
-
-#include <fcntl.h> // for AT_FDCWD
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
 
 using std::string_view_literals::operator""sv;
 
 static bool
 IsPopulated(FileDescriptor fd) noexcept
 {
-	char buffer[4096];
-	ssize_t nbytes = pread(fd.Get(), buffer, sizeof(buffer), 0);
+	std::byte buffer[4096];
+	ssize_t nbytes = fd.ReadAt(0, buffer);
 	if (nbytes <= 0)
 		return false;
 
-	const std::string_view contents{buffer, static_cast<std::size_t>(nbytes)};
+	const std::string_view contents = ToStringView(std::span{buffer}.first(nbytes));
 	return !contents.contains("populated 0"sv);
 }
 
