@@ -33,14 +33,19 @@ class UnifiedCgroupWatch::Group {
 
 	const std::string relative_path;
 
-	UniqueFileDescriptor fd;
-
+	/**
+	 * Polls for events on the "cgroup.events" file.
+	 */
 	PipeEvent event;
 
 public:
 	Group(UnifiedCgroupWatch &_parent,
 	      std::string_view _relative_path,
 	      UniqueFileDescriptor &&_fd) noexcept;
+
+	~Group() noexcept {
+		event.Close();
+	}
 
 	const std::string &GetRelativePath() noexcept {
 		return relative_path;
@@ -56,9 +61,8 @@ UnifiedCgroupWatch::Group::Group(UnifiedCgroupWatch &_parent,
 				 UniqueFileDescriptor &&_fd) noexcept
 	:parent(_parent),
 	 relative_path(_relative_path),
-	 fd(std::move(_fd)),
 	 event(parent.GetEventLoop(), BIND_THIS_METHOD(EventCallback),
-	       fd)
+	       _fd.Release())
 {
 	event.Schedule(event.EXCEPTIONAL);
 }
@@ -66,7 +70,7 @@ UnifiedCgroupWatch::Group::Group(UnifiedCgroupWatch &_parent,
 void
 UnifiedCgroupWatch::Group::EventCallback(unsigned) noexcept
 {
-	if (!IsPopulated(fd))
+	if (!IsPopulated(event.GetFileDescriptor()))
 		parent.OnGroupEmpty(*this);
 }
 
