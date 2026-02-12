@@ -7,6 +7,7 @@
 #include "system/Error.hxx"
 #include "io/DirectoryReader.hxx"
 #include "io/FileAt.hxx"
+#include "io/FileName.hxx"
 #include "io/Open.hxx"
 #include "io/linux/ProcPath.hxx"
 #include "util/IterableSplitString.hxx"
@@ -160,7 +161,7 @@ TreeWatch::ScanDirectory(Directory &directory)
 
 	DirectoryReader reader(OpenDirectory({directory.fd, "."}));
 	while (const char *name = reader.Read()) {
-		if (*name == '.')
+		if (IsSpecialFilename(name))
 			continue;
 
 		try {
