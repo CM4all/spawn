@@ -53,6 +53,7 @@ private:
 	void OnGroupEmpty(Group &group) noexcept;
 
 protected:
+	bool ShouldSkipName(std::string_view name) const noexcept override;
 	void OnDirectoryCreated(std::string_view relative_path,
 				FileDescriptor directory_fd) noexcept override;
 	void OnDirectoryDeleted(std::string_view relative_path) noexcept override;

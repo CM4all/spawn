@@ -1,6 +1,7 @@
 cm4all-spawn (0.26) unstable; urgency=low
 
   * reaper: schedule EPOLLPRI on cgroup.events
+  * reaper: reduce number of system calls while scanning cgroup tree
   * lua: new libraries:
     - "control_client
     - "socket"

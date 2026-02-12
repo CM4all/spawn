@@ -16,6 +16,8 @@
 #include <stdio.h>
 #include <string.h>
 
+using std::string_view_literals::operator""sv;
+
 static bool
 IsPopulated(FileDescriptor fd) noexcept
 {
@@ -133,6 +135,71 @@ UnifiedCgroupWatch::InsertGroup(const std::string_view relative_path,
 		       std::forward_as_tuple(*this,
 					     relative_path,
 					     std::move(fd)));
+}
+
+bool
+UnifiedCgroupWatch::ShouldSkipName(std::string_view name) const noexcept
+{
+	/**
+	 * List of well-known cgroup file names to be skipped by class
+	 * #TreeWatch (don't bother to open() them while looking for
+	 * new subdirectories).
+	 */
+	static constexpr std::string_view skip_names[] = {
+		// must be sorted:
+
+		"cgroup.controllers"sv,
+		"cgroup.events"sv,
+		"cgroup.freeze"sv,
+		"cgroup.kill"sv,
+		"cgroup.max.depth"sv,
+		"cgroup.max.descendants"sv,
+		"cgroup.pressure"sv,
+		"cgroup.procs"sv,
+		"cgroup.stat"sv,
+		"cgroup.subtree_control"sv,
+		"cgroup.threads"sv,
+		"cgroup.type"sv,
+
+		"cpu.idle"sv,
+		"cpu.max"sv,
+		"cpu.max.burst"sv,
+		"cpu.pressure"sv,
+		"cpu.stat"sv,
+		"cpu.stat.local"sv,
+		"cpu.weight"sv,
+		"cpu.weight.nice"sv,
+
+		"io.bfq.weight"sv,
+		"io.latency"sv,
+		"io.pressure"sv,
+		"io.prio.class"sv,
+		"io.stat"sv,
+		"io.weight"sv,
+
+		"memory.current"sv,
+		"memory.events"sv,
+		"memory.events.local"sv,
+		"memory.high"sv,
+		"memory.low"sv,
+		"memory.max"sv,
+		"memory.min"sv,
+		"memory.numa_stat"sv,
+		"memory.oom.group"sv,
+		"memory.peak"sv,
+		"memory.pressure"sv,
+		"memory.reclaim"sv,
+		"memory.stat"sv,
+
+		"pids.current"sv,
+		"pids.events"sv,
+		"pids.events.local"sv,
+		"pids.forks"sv,
+		"pids.max"sv,
+		"pids.peak"sv,
+	};
+
+	return std::binary_search(std::begin(skip_names), std::end(skip_names), name);
 }
 
 void

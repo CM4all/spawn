@@ -89,6 +89,13 @@ private:
 				const char *name) noexcept;
 
 protected:
+	/**
+	 * Check whether the file name should be ignored while
+	 * scanning for subdirectories.
+	 */
+	[[gnu::pure]]
+	virtual bool ShouldSkipName(std::string_view name) const noexcept = 0;
+
 	virtual void OnDirectoryCreated(std::string_view relative_path,
 					FileDescriptor directory_fd) noexcept = 0;
 	virtual void OnDirectoryDeleted(std::string_view relative_path) noexcept = 0;

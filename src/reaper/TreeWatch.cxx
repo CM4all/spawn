@@ -164,10 +164,14 @@ TreeWatch::ScanDirectory(Directory &directory)
 		if (IsSpecialFilename(name))
 			continue;
 
+		const std::string_view name_sv{name};
+		if (ShouldSkipName(name_sv))
+			continue;
+
 		try {
 			auto fd = OpenDirectoryPath({directory.fd, name});
 
-			auto &child = MakeChild(directory, name, false, true);
+			auto &child = MakeChild(directory, name_sv, false, true);
 			if (child.IsOpen())
 				continue;
 
@@ -218,6 +222,9 @@ void
 TreeWatch::HandleNewDirectory(Directory &parent, std::string_view name)
 {
 	assert(parent.IsOpen());
+
+	if (ShouldSkipName(name))
+		return;
 
 	Directory *child;
 

@@ -19,6 +19,10 @@ public:
 		:TreeWatch(event_loop, FileDescriptor{AT_FDCWD}, base_path) {}
 
 protected:
+	bool ShouldSkipName([[maybe_unused]] std::string_view name) const noexcept override {
+		return false;
+	}
+
 	void OnDirectoryCreated(std::string_view relative_path,
 				FileDescriptor) noexcept override {
 		fmt::print("+ {}\n", relative_path);
