@@ -24,12 +24,12 @@ static bool
 IsPopulated(FileDescriptor fd) noexcept
 {
 	char buffer[4096];
-	ssize_t nbytes = pread(fd.Get(), buffer, sizeof(buffer) - 1, 0);
+	ssize_t nbytes = pread(fd.Get(), buffer, sizeof(buffer), 0);
 	if (nbytes <= 0)
 		return false;
 
-	buffer[nbytes] = 0;
-	return strstr(buffer, "populated 0") == nullptr;
+	const std::string_view contents{buffer, static_cast<std::size_t>(nbytes)};
+	return !contents.contains("populated 0"sv);
 }
 
 class UnifiedCgroupWatch::Group {
