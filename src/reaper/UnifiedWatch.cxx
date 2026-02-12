@@ -60,7 +60,7 @@ UnifiedCgroupWatch::Group::Group(UnifiedCgroupWatch &_parent,
 	 event(parent.GetEventLoop(), BIND_THIS_METHOD(EventCallback),
 	       SocketDescriptor::FromFileDescriptor(fd))
 {
-	event.ScheduleImplicit();
+	event.Schedule(event.EXCEPTIONAL);
 }
 
 void
