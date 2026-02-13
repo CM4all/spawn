@@ -76,6 +76,14 @@ public:
 			: FileDescriptor::Undefined();
 	}
 
+	[[gnu::pure]]
+	bool IsDirectoryEmpty(std::string_view relative_path) const noexcept {
+		const auto *directory = FindDirectory(relative_path);
+		return directory != nullptr
+			? directory->children.empty()
+			: true;
+	}
+
 private:
 	/**
 	 * Look up a #Directory object.  Returns nullptr if the
@@ -110,5 +118,6 @@ protected:
 
 	virtual void OnDirectoryCreated(std::string_view relative_path,
 					FileDescriptor directory_fd) noexcept = 0;
+	virtual void OnDirectoryEmpty(std::string_view relative_path) noexcept = 0;
 	virtual void OnDirectoryDeleted(std::string_view relative_path) noexcept = 0;
 };

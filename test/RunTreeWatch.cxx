@@ -28,6 +28,10 @@ protected:
 		fmt::print("+ {}\n", relative_path);
 	}
 
+	void OnDirectoryEmpty(std::string_view relative_path) noexcept override {
+		fmt::print("e {}\n", relative_path);
+	}
+
 	void OnDirectoryDeleted(std::string_view relative_path) noexcept override {
 		fmt::print("- {}\n", relative_path);
 	}

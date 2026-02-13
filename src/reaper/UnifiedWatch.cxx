@@ -114,6 +114,13 @@ UnifiedCgroupWatch::ReAddCgroup(std::string_view relative_path) noexcept
 void
 UnifiedCgroupWatch::OnGroupEmpty(Group &group) noexcept
 {
+	if (!IsDirectoryEmpty(group.GetRelativePath()))
+		/* there are still child cgroups, but they are
+		   unpopulated; they may be populated soon, so don't
+		   reap this cgroup yet; later, OnDirectoryEmpty() may
+		   do that */
+		return;
+
 	callback(("/" + group.GetRelativePath()).c_str());
 
 	auto i = groups.find(group.GetRelativePath());
@@ -222,6 +229,23 @@ UnifiedCgroupWatch::OnDirectoryCreated(const std::string_view relative_path,
 	} catch (...) {
 		PrintException(std::current_exception());
 	}
+}
+
+void
+UnifiedCgroupWatch::OnDirectoryEmpty(std::string_view relative_path) noexcept
+{
+	auto i = groups.find(relative_path);
+	if (i == groups.end())
+		return;
+
+	auto &group = i->second;
+	if (group.IsPopulated())
+		/* the last child cgroup was deleted, but this one is
+		   still populated, so don't reap it */
+		return;
+
+	callback(("/" + group.GetRelativePath()).c_str());
+	groups.erase(i);
 }
 
 void

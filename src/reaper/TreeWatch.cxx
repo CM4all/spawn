@@ -261,8 +261,12 @@ TreeWatch::HandleDeletedDirectory(Directory &parent,
 
 	HandleDeletedDirectory(child);
 
-	if (!child.persist)
+	if (!child.persist) {
 		parent.children.erase(i);
+
+		if (parent.children.empty())
+			OnDirectoryEmpty(parent.GetRelativePath());
+	}
 }
 
 inline void
