@@ -69,9 +69,21 @@ public:
 	 * #FileDescriptor.
 	 */
 	[[gnu::pure]]
-	FileDescriptor Find(std::string_view relative_path) const noexcept;
+	FileDescriptor Find(std::string_view relative_path) const noexcept {
+		const auto *directory = FindDirectory(relative_path);
+		return directory != nullptr
+			? FileDescriptor{directory->fd}
+			: FileDescriptor::Undefined();
+	}
 
 private:
+	/**
+	 * Look up a #Directory object.  Returns nullptr if the
+	 * specified path is not being watched.
+	 */
+	[[gnu::pure]]
+	const Directory *FindDirectory(std::string_view relative_path) const noexcept;
+
 	Directory &MakeChild(Directory &parent, std::string_view name,
 			     bool persist, bool all) noexcept;
 
