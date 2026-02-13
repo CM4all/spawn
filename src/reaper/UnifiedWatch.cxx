@@ -51,6 +51,11 @@ public:
 		return relative_path;
 	}
 
+	[[gnu::pure]]
+	bool IsPopulated() const noexcept {
+		return ::IsPopulated(event.GetFileDescriptor());
+	}
+
 private:
 	void EventCallback(unsigned events) noexcept;
 };
@@ -70,7 +75,7 @@ UnifiedCgroupWatch::Group::Group(UnifiedCgroupWatch &_parent,
 void
 UnifiedCgroupWatch::Group::EventCallback(unsigned) noexcept
 {
-	if (!IsPopulated(event.GetFileDescriptor()))
+	if (!IsPopulated())
 		parent.OnGroupEmpty(*this);
 }
 
