@@ -8,7 +8,7 @@ cm4all-spawn (0.26) unstable; urgency=low
     - "socket"
   * fix build with glibc 2.43
 
- --   
+ -- Max Kellermann <mk@cm4all.com>  Fri, 13 Feb 2026 12:15:30 +0100
 
 cm4all-spawn (0.25) unstable; urgency=low
 
