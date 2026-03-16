@@ -1,6 +1,6 @@
 cm4all-spawn (0.27) unstable; urgency=low
 
-  * 
+  * debian: add missing build-dependencies on pkg-config and libsodium-dev
 
  --   
 
