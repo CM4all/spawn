@@ -8,6 +8,7 @@
 #include "io/SmallTextFile.hxx"
 #include "io/Open.hxx"
 #include "io/UniqueFileDescriptor.hxx"
+#include "util/ByteSizes.hxx"
 #include "util/NumberParser.hxx"
 #include "util/PrintException.hxx"
 #include "util/StringStrip.hxx"
@@ -19,7 +20,7 @@ ReadCgroupCpuStat(FileDescriptor cgroup_fd)
 {
 	CgroupCpuStat result;
 
-	for (const std::string_view line : IterableSmallTextFile<4096>{FileAt{cgroup_fd, "cpu.stat"}}) {
+	for (const std::string_view line : IterableSmallTextFile<4_KiB>{FileAt{cgroup_fd, "cpu.stat"}}) {
 		const auto [name, value_s] = Split(line, ' ');
 
 		if (name == "usage_usec"sv) {
@@ -61,7 +62,7 @@ ReadCgroupResourceUsage(FileDescriptor cgroup_fd) noexcept
 	}
 
 	try {
-		for (const std::string_view line : IterableSmallTextFile<4096>{FileAt{cgroup_fd, "memory.events"}}) {
+		for (const std::string_view line : IterableSmallTextFile<4_KiB>{FileAt{cgroup_fd, "memory.events"}}) {
 			const auto [name, value_s] = Split(line, ' ');
 
 			if (name == "high"sv) {
@@ -105,7 +106,7 @@ ReadCgroupResourceUsage(FileDescriptor cgroup_fd) noexcept
 	}
 
 	try {
-		for (const std::string_view line : IterableSmallTextFile<4096>{FileAt{cgroup_fd, "pids.events"}}) {
+		for (const std::string_view line : IterableSmallTextFile<4_KiB>{FileAt{cgroup_fd, "pids.events"}}) {
 			const auto [name, value_s] = Split(line, ' ');
 
 			if (name == "max"sv) {

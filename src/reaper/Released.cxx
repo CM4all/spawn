@@ -10,6 +10,7 @@
 #include "io/FileAt.hxx"
 #include "time/ISO8601.hxx"
 #include "time/StatxCast.hxx"
+#include "util/ByteSizes.hxx"
 #include "util/StringBuffer.hxx"
 #include "util/StringCompare.hxx"
 
@@ -72,7 +73,7 @@ CollectCgroupStats(const char *suffix,
 		   const std::chrono::system_clock::time_point btime,
 		   const CgroupResourceUsage &u)
 {
-	char buffer[4096], *p = buffer;
+	char buffer[4_KiB], *p = buffer;
 
 	using Age = std::chrono::duration<double>;
 	Age age{};
@@ -98,10 +99,8 @@ CollectCgroupStats(const char *suffix,
 	}
 
 	if (u.have_memory_peak) {
-		static constexpr uint_least64_t MEGA = 1024 * 1024;
-
 		p = fmt::format_to(p, " memory={}M",
-				   (u.memory_peak + MEGA / 2 - 1) / MEGA);
+				   (u.memory_peak + 1_MiB / 2 - 1) / 1_MiB);
 	}
 
 	if ((u.have_memory_events_high && u.memory_events_high > 0) ||

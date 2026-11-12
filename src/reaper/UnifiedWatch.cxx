@@ -8,6 +8,7 @@
 #include "io/Open.hxx"
 #include "io/UniqueFileDescriptor.hxx"
 #include "util/BindMethod.hxx"
+#include "util/ByteSizes.hxx"
 #include "util/PrintException.hxx"
 #include "util/ScopeExit.hxx"
 #include "util/SpanCast.hxx"
@@ -19,7 +20,7 @@ using std::string_view_literals::operator""sv;
 static bool
 IsPopulated(FileDescriptor fd) noexcept
 {
-	std::byte buffer[4096];
+	std::byte buffer[4_KiB];
 	ssize_t nbytes = fd.ReadAt(0, buffer);
 	if (nbytes <= 0)
 		return false;
