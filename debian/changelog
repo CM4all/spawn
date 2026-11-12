@@ -5,6 +5,7 @@ cm4all-spawn (0.27) unstable; urgency=low
   * lua/socket: rethrow C++ exception from resolver as Lua error
   * lua/sodium: add Lua bindings for crypto_sign
   * pg: no delay for first auto-reconnect
+  * client: fix padding check
   * debian: add missing build-dependencies on pkg-config and libsodium-dev
 
  --   
