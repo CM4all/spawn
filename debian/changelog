@@ -17,6 +17,7 @@ cm4all-spawn (0.27) unstable; urgency=low
   * debian: use "debhelper-compat" instead of "debian/compat"
   * debian: build-depend on pkgconf instead of pkg-config
   * debian: add copyright file
+  * debian: add source/format file
 
  --   
 
