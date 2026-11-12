@@ -78,6 +78,10 @@ try {
 	ReceiveMessageBuffer<1024, 256> buffer;
 	auto response = ReceiveMessage(s, buffer, 0);
 	s.Close();
+
+	if (response.truncated)
+		throw std::runtime_error{"Truncated response"};
+
 	auto payload = response.payload;
 	const auto &dh = *(const DatagramHeader *)(const void *)payload.data();
 	if (payload.size() < sizeof(dh))
