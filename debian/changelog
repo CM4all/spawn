@@ -1,6 +1,6 @@
 cm4all-spawn (0.27) unstable; urgency=low
 
-  * lua: fix nullptr defereference on illegal exec_pipe() call
+  * lua: fix nullptr dereference on illegal exec_pipe() call
   * lua: fix crash on error() with non-string parameter
   * lua/socket: rethrow C++ exception from resolver as Lua error
   * lua/sodium: add Lua bindings for crypto_sign
