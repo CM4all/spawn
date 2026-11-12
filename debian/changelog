@@ -3,6 +3,7 @@ cm4all-spawn (0.27) unstable; urgency=low
   * lua: fix nullptr dereference on illegal exec_pipe() call
   * lua: fix crash on error() with non-string parameter
   * lua/control: rethrow LuaJIT errors
+  * lua/control: reject non-string control_builder arguments
   * lua/pg: fix use-after-free bug
   * lua/pg: quote the LISTEN channel name
   * lua/socket: rethrow C++ exception from resolver as Lua error
