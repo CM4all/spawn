@@ -1,5 +1,6 @@
 cm4all-spawn (0.27) unstable; urgency=low
 
+  * accessory: disconnect on truncated datagram
   * lua: fix nullptr dereference on illegal exec_pipe() call
   * lua: fix crash on error() with non-string parameter
   * lua/control: rethrow LuaJIT errors

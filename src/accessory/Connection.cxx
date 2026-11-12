@@ -183,6 +183,13 @@ try {
 }
 
 bool
+SpawnConnection::OnUdpTruncated() noexcept
+{
+	delete this;
+	return false;
+}
+
+bool
 SpawnConnection::OnUdpHangup()
 {
 	delete this;
