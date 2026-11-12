@@ -15,6 +15,7 @@ cm4all-spawn (0.27) unstable; urgency=low
   * client: reject truncated response datagram
   * debian: add missing build-dependencies on pkg-config and libsodium-dev
   * debian: use "debhelper-compat" instead of "debian/compat"
+  * debian: build-depend on pkgconf instead of pkg-config
 
  --   
 
