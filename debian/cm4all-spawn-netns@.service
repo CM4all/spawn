@@ -6,6 +6,8 @@
 
 [Unit]
 Description=CM4all Spawn Network Namespace
+Documentation=https://cm4all-spawn.readthedocs.io/
+
 After=network.target
 Wants=systemd-networkd.service
 

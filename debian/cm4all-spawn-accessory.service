@@ -1,5 +1,6 @@
 [Unit]
 Description=CM4all Spawner Accessory Daemon
+Documentation=https://cm4all-spawn.readthedocs.io/
 
 [Service]
 Type=notify
