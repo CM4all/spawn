@@ -18,6 +18,7 @@ cm4all-spawn (0.27) unstable; urgency=low
   * debian: build-depend on pkgconf instead of pkg-config
   * debian: add copyright file
   * debian: add source/format file
+  * debian: install system-cm4all.slice to /usr/lib/systemd/system/
 
  --   
 
