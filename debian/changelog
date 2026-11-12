@@ -6,6 +6,7 @@ cm4all-spawn (0.27) unstable; urgency=low
   * lua/control: reject non-string control_builder arguments
   * lua/pg: fix use-after-free bug
   * lua/pg: quote the LISTEN channel name
+  * lua/pg: reject execute() string parameters containing a null byte
   * lua/socket: rethrow C++ exception from resolver as Lua error
   * lua/sodium: add Lua bindings for crypto_sign
   * pg: no delay for first auto-reconnect
